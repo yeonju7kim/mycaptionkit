@@ -9,6 +9,7 @@ const {
   createServer,
   getModeForSpeakerLanguage,
   getModeDetails,
+  normalizeSettings,
   parseCaptionSourceHtml,
   validateConfigPatch,
 } = require('../server');
@@ -37,6 +38,24 @@ test('한국어 설교 모드는 영어 번역 lower-third URL을 만든다', ()
   );
 });
 
+test('기존 공통 화면 설정을 두 Display 설정으로 이전한다', () => {
+  const migrated = normalizeSettings({
+    handle: 'legacy-handle',
+    width: 85,
+    fontSize: 5,
+    lineSpacing: 25,
+    lines: 7,
+    position: 'bottom',
+    rounded: true,
+    backgroundColor: '00000080',
+  });
+  assert.equal(migrated.displays.subtitle.width, 85);
+  assert.equal(migrated.displays.full.width, 85);
+  assert.equal(migrated.displays.subtitle.lines, 7);
+  assert.equal(migrated.displays.full.lineSpacing, 25);
+  assert.equal('width' in migrated, false);
+});
+
 test('영어 설교 모드는 한국어 번역 화면을 선택한다', () => {
   const settings = { ...DEFAULT_SETTINGS, activeMode: 'en-ko' };
   assert.deepEqual(getModeDetails(settings), {
@@ -51,21 +70,32 @@ test('영어 설교 모드는 한국어 번역 화면을 선택한다', () => {
 
 test('화면 옵션을 검증하고 hex 색상의 #을 제거한다', () => {
   assert.deepEqual(validateConfigPatch({
-    width: 95,
-    fontSize: 12,
-    lines: 5,
-    position: 'top',
-    backgroundColor: '#00000080',
+    displays: {
+      subtitle: {
+        width: 95,
+        fontSize: 12,
+        lineSpacing: 35,
+        lines: 10,
+        position: 'top',
+        backgroundColor: '#00000080',
+      },
+    },
   }), {
-    width: 95,
-    fontSize: 12,
-    lines: 5,
-    position: 'top',
-    backgroundColor: '00000080',
+    displays: {
+      subtitle: {
+        width: 95,
+        fontSize: 12,
+        lineSpacing: 35,
+        lines: 10,
+        position: 'top',
+        backgroundColor: '00000080',
+      },
+    },
   });
 
-  assert.throws(() => validateConfigPatch({ width: 101 }), /20 to 100/);
-  assert.throws(() => validateConfigPatch({ lines: 6 }), /1 to 5/);
+  assert.throws(() => validateConfigPatch({ displays: { full: { width: 101 } } }), /20 to 100/);
+  assert.throws(() => validateConfigPatch({ displays: { full: { lineSpacing: 101 } } }), /0 to 100/);
+  assert.throws(() => validateConfigPatch({ displays: { full: { lines: 11 } } }), /1 to 10/);
   assert.throws(() => validateConfigPatch({ handle: '../secret' }), /handle/);
 });
 
@@ -77,10 +107,12 @@ test('로컬 서버가 Control, Display, 공개 상태를 제공한다', async (
   const { port } = server.address();
   const baseUrl = `http://127.0.0.1:${port}`;
 
-  const [healthResponse, controlResponse, displayResponse, stateResponse] = await Promise.all([
+  const [healthResponse, controlResponse, displayResponse, subtitleResponse, fullResponse, stateResponse] = await Promise.all([
     fetch(`${baseUrl}/health`),
     fetch(`${baseUrl}/control`),
     fetch(`${baseUrl}/display`),
+    fetch(`${baseUrl}/display/subtitle`),
+    fetch(`${baseUrl}/display/full`),
     fetch(`${baseUrl}/api/state`),
   ]);
 
@@ -91,13 +123,28 @@ test('로컬 서버가 Control, Display, 공개 상태를 제공한다', async (
   assert.doesNotMatch(controlHtml, /Caption controls/);
   assert.match(controlHtml, /microphoneTestButton/);
   assert.match(controlHtml, /https:\/\/app\.captionkit\.com\//);
+  assert.ok(controlHtml.indexOf('quick-start-panel') < controlHtml.indexOf('microphone-panel'));
+  assert.match(controlHtml, /data-guide-language="en"/);
+  assert.match(controlHtml, /data-guide-language="ko"/);
+  assert.match(controlHtml, /data-guide-language="zh"/);
+  assert.match(controlHtml, /data-captionkit-dashboard-link/);
+  assert.match(controlHtml, /Choose the Speaker Language\./);
+  assert.match(controlHtml, /Press the ⚡ button\./);
   const displayHtml = await displayResponse.text();
   assert.match(displayHtml, /captionFrameA/);
   assert.match(displayHtml, /sentenceCaptionLayer/);
+  assert.equal(subtitleResponse.status, 200);
+  assert.equal(fullResponse.status, 200);
+  assert.match(controlHtml, /data-display-address="subtitle"/);
+  assert.match(controlHtml, /data-display-address="full"/);
+  assert.match(controlHtml, /src="\/display\/subtitle\?preview=1"/);
+  assert.match(controlHtml, /src="\/display\/full\?preview=1"/);
 
   const state = await stateResponse.json();
   assert.equal(state.ok, true);
   assert.equal(state.state.settings.handle, 'kcic-ytpx2u');
+  assert.equal(Number.isInteger(state.state.settings.displays.subtitle.lines), true);
+  assert.equal(Number.isInteger(state.state.settings.displays.full.lines), true);
   assert.equal('apiKey' in state.state.settings, false);
   assert.match(state.state.displayUrl, /^https:\/\/captionkit\.com\/s\//);
 });

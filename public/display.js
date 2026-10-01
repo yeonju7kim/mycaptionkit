@@ -11,6 +11,19 @@ const debugText = document.querySelector('#displayDebugText');
 const displayParams = new URLSearchParams(window.location.search);
 const debugEnabled = displayParams.get('debug') === '1';
 const replayAll = displayParams.get('replay') === 'all';
+const previewMode = displayParams.get('preview') === '1';
+const displayType = window.location.pathname.endsWith('/full') ? 'full' : 'subtitle';
+const EXAMPLE_CAPTIONS = [
+  '이것은 예시 문장입니다.',
+  '이 문장은 AI 통역을 시작하면 바뀝니다.',
+  'This is an example sentence.',
+  'This sentence will change when AI translation starts.',
+];
+
+document.body.classList.add(`display-${displayType}`);
+document.title = displayType === 'full'
+  ? 'My CaptionKit · Full Screen'
+  : 'My CaptionKit · Subtitle';
 
 let activeFrameIndex = 0;
 let currentCaptionUrl = '';
@@ -67,7 +80,7 @@ function switchCaptionUrl(url) {
 
 function backgroundValue(rawValue) {
   const value = String(rawValue || '').trim();
-  if (!value) return 'rgba(0, 0, 0, 0.78)';
+  if (!value) return displayType === 'full' ? 'transparent' : 'rgba(0, 0, 0, 0.78)';
   if (/^[0-9a-f]{3,8}$/i.test(value)) return `#${value}`;
   return value;
 }
@@ -75,6 +88,7 @@ function backgroundValue(rawValue) {
 function applyDisplaySettings(settings) {
   sentenceLayer.style.setProperty('--caption-width', `${settings.width}%`);
   sentenceLayer.style.setProperty('--caption-font-size', `${settings.fontSize}vh`);
+  sentenceLayer.style.setProperty('--caption-line-gap', `${settings.lineSpacing / 100}em`);
   sentenceLayer.style.setProperty('--caption-background', backgroundValue(settings.backgroundColor));
   sentenceLayer.classList.toggle('is-top', settings.position === 'top');
   sentenceLayer.classList.toggle('is-square', !settings.rounded);
@@ -88,7 +102,21 @@ function captionKey(caption) {
 }
 
 function renderCaptions() {
-  const limit = Number(currentState?.settings?.lines) || 1;
+  const displaySettings = currentState?.settings?.displays?.[displayType];
+  const limit = Number(displaySettings?.lines) || 1;
+  if (previewMode && currentState?.runtime?.live !== true) {
+    const examples = Array.from({ length: limit }, (_, index) => ({
+      text: EXAMPLE_CAPTIONS[index % EXAMPLE_CAPTIONS.length],
+      example: true,
+    }));
+    sentenceList.replaceChildren(...examples.map((caption) => {
+      const line = document.createElement('div');
+      line.className = 'sentence-caption is-example';
+      line.textContent = caption.text;
+      return line;
+    }));
+    return;
+  }
   const visible = completedCaptions.slice(-(partialCaption ? Math.max(0, limit - 1) : limit));
   if (partialCaption?.text?.trim()) visible.push({ ...partialCaption, partial: true });
 
@@ -158,6 +186,11 @@ function clearCaptions() {
   renderCaptions();
 }
 
+function clearPartialCaption() {
+  partialCaption = null;
+  renderCaptions();
+}
+
 function buildSocketUrl(source, channels) {
   const url = new URL(source.realtimeUrl);
   for (const channel of channels) {
@@ -205,7 +238,9 @@ function openCaptionSocket(source, language, key) {
         const nextKey = `${currentState.settings.handle}:${nextLanguage}`;
         connectionAttempt += 1;
         socketKey = nextKey;
-        clearCaptions();
+        // Keep completed history when only the speaker language changes. The
+        // unfinished phrase belongs to the old recognizer, so discard it.
+        clearPartialCaption();
         openCaptionSocket(source, nextLanguage, nextKey);
       }
       return;
@@ -239,8 +274,10 @@ async function connectCaptionStream(state) {
   if (fallbackKey === socketKey && captionSocket) return;
 
   const attempt = ++connectionAttempt;
+  const sameAccount = socketKey.startsWith(`${state.settings.handle}:`);
   closeCaptionSocket();
-  clearCaptions();
+  if (sameAccount) clearPartialCaption();
+  else clearCaptions();
 
   try {
     const response = await fetch('/api/caption-source', { cache: 'no-store' });
@@ -261,8 +298,9 @@ async function connectCaptionStream(state) {
 function applyState(state) {
   if (!state) return;
   currentState = state;
-  if (state.displayUrl) switchCaptionUrl(state.displayUrl);
-  applyDisplaySettings(state.settings);
+  const displayUrl = state.displayUrls?.[displayType] || state.displayUrl;
+  if (displayUrl) switchCaptionUrl(displayUrl);
+  applyDisplaySettings(state.settings.displays?.[displayType] || state.settings);
   renderCaptions();
   connectCaptionStream(state);
 }

@@ -16,17 +16,33 @@ const CAPTION_REALTIME_URL = 'wss://realtime.shrill-base-ff6a.workers.dev/v1/sub
 
 loadDotEnv(path.join(ROOT_DIR, '.env'));
 
+const DEFAULT_DISPLAY_SETTINGS = Object.freeze({
+  subtitle: Object.freeze({
+    width: 80,
+    fontSize: 10,
+    lineSpacing: 20,
+    lines: 1,
+    position: 'bottom',
+    rounded: true,
+    backgroundColor: '',
+  }),
+  full: Object.freeze({
+    width: 90,
+    fontSize: 7,
+    lineSpacing: 20,
+    lines: 5,
+    position: 'top',
+    rounded: false,
+    backgroundColor: 'transparent',
+  }),
+});
+
 const DEFAULT_SETTINGS = Object.freeze({
   handle: 'kcic-ytpx2u',
   activeMode: 'ko-en',
   koreanCode: 'ko',
   englishCode: 'en-US',
-  width: 80,
-  fontSize: 10,
-  lines: 1,
-  position: 'bottom',
-  rounded: true,
-  backgroundColor: '',
+  displays: DEFAULT_DISPLAY_SETTINGS,
   apiKey: '',
 });
 
@@ -64,13 +80,39 @@ function loadDotEnv(filePath) {
 function loadSettings() {
   try {
     const saved = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
-    return { ...DEFAULT_SETTINGS, ...saved };
+    return normalizeSettings(saved);
   } catch (error) {
     if (error.code !== 'ENOENT') {
       console.warn('Could not read the settings file; using defaults:', error.message);
     }
-    return { ...DEFAULT_SETTINGS };
+    return normalizeSettings({});
   }
+}
+
+function normalizeSettings(saved) {
+  const legacyStyle = {};
+  for (const key of ['width', 'fontSize', 'lineSpacing', 'lines', 'position', 'rounded', 'backgroundColor']) {
+    if (saved[key] !== undefined) legacyStyle[key] = saved[key];
+  }
+
+  const normalized = {
+    ...DEFAULT_SETTINGS,
+    ...saved,
+    displays: {
+      subtitle: {
+        ...DEFAULT_DISPLAY_SETTINGS.subtitle,
+        ...legacyStyle,
+        ...(saved.displays?.subtitle || {}),
+      },
+      full: {
+        ...DEFAULT_DISPLAY_SETTINGS.full,
+        ...legacyStyle,
+        ...(saved.displays?.full || {}),
+      },
+    },
+  };
+  for (const key of Object.keys(legacyStyle)) delete normalized[key];
+  return normalized;
 }
 
 function persistSettings() {
@@ -105,22 +147,28 @@ function getModeDetails(sourceSettings = settings) {
   };
 }
 
-function buildCaptionUrl(sourceSettings = settings) {
+function getDisplaySettings(displayType, sourceSettings = settings) {
+  const type = displayType === 'full' ? 'full' : 'subtitle';
+  return sourceSettings.displays?.[type] || DEFAULT_DISPLAY_SETTINGS[type];
+}
+
+function buildCaptionUrl(sourceSettings = settings, displayType = 'subtitle') {
   const mode = getModeDetails(sourceSettings);
+  const displaySettings = getDisplaySettings(displayType, sourceSettings);
   const handle = encodeURIComponent(sourceSettings.handle.trim());
   const language = encodeURIComponent(mode.displayLanguage.trim());
   const url = new URL(`https://captionkit.com/s/${handle}/l/${language}`);
 
-  url.searchParams.set('width', String(sourceSettings.width));
-  url.searchParams.set('rounded', String(sourceSettings.rounded));
-  url.searchParams.set('fontSize', String(sourceSettings.fontSize));
-  url.searchParams.set('lines', String(sourceSettings.lines));
+  url.searchParams.set('width', String(displaySettings.width));
+  url.searchParams.set('rounded', String(displaySettings.rounded));
+  url.searchParams.set('fontSize', String(displaySettings.fontSize));
+  url.searchParams.set('lines', String(displaySettings.lines));
 
-  if (sourceSettings.position === 'top') {
+  if (displaySettings.position === 'top') {
     url.searchParams.set('position', 'top');
   }
-  if (sourceSettings.backgroundColor) {
-    url.searchParams.set('backgroundColor', sourceSettings.backgroundColor);
+  if (displaySettings.backgroundColor) {
+    url.searchParams.set('backgroundColor', displaySettings.backgroundColor);
   }
 
   return url.toString();
@@ -199,7 +247,11 @@ function publicState() {
   return {
     settings: safeSettings,
     mode: getModeDetails(),
-    displayUrl: buildCaptionUrl(),
+    displayUrl: buildCaptionUrl(settings, 'subtitle'),
+    displayUrls: {
+      subtitle: buildCaptionUrl(settings, 'subtitle'),
+      full: buildCaptionUrl(settings, 'full'),
+    },
     apiKeyConfigured: Boolean(getApiKey()),
     apiKeyFromEnvironment: Boolean((process.env.CAPTIONKIT_API_KEY || '').trim()),
     controlPinRequired: Boolean((process.env.CONTROL_PIN || '').trim()),
@@ -256,24 +308,16 @@ function validateConfigPatch(patch) {
   if ('englishCode' in patch) {
     validated.englishCode = validateLanguageCode(patch.englishCode, 'English code');
   }
-  if ('width' in patch) validated.width = validateNumber(patch.width, 'Width', 20, 100);
-  if ('fontSize' in patch) validated.fontSize = validateNumber(patch.fontSize, 'Font size', 2, 30);
-  if ('lines' in patch) validated.lines = validateNumber(patch.lines, 'Lines', 1, 5);
-
-  if ('position' in patch) {
-    if (!['top', 'bottom'].includes(patch.position)) {
-      throw httpError(400, 'Position must be top or bottom.');
+  if ('displays' in patch) {
+    if (!patch.displays || typeof patch.displays !== 'object' || Array.isArray(patch.displays)) {
+      throw httpError(400, 'Invalid display settings.');
     }
-    validated.position = patch.position;
-  }
-  if ('rounded' in patch) validated.rounded = Boolean(patch.rounded);
-
-  if ('backgroundColor' in patch) {
-    const color = String(patch.backgroundColor).trim();
-    if (color.length > 80 || /[<>]/.test(color)) {
-      throw httpError(400, 'Check the background color value.');
+    validated.displays = {};
+    for (const type of ['subtitle', 'full']) {
+      if (type in patch.displays) {
+        validated.displays[type] = validateDisplayConfigPatch(patch.displays[type], type);
+      }
     }
-    validated.backgroundColor = color.startsWith('#') ? color.slice(1) : color;
   }
 
   if (patch.clearApiKey === true) validated.apiKey = '';
@@ -282,6 +326,33 @@ function validateConfigPatch(patch) {
     validated.apiKey = patch.apiKey.trim();
   }
 
+  return validated;
+}
+
+function validateDisplayConfigPatch(patch, type) {
+  if (!patch || typeof patch !== 'object' || Array.isArray(patch)) {
+    throw httpError(400, `Invalid ${type} display settings.`);
+  }
+  const validated = {};
+  const label = type === 'full' ? 'Full Screen' : 'Subtitle';
+  if ('width' in patch) validated.width = validateNumber(patch.width, `${label} width`, 20, 100);
+  if ('fontSize' in patch) validated.fontSize = validateNumber(patch.fontSize, `${label} font size`, 2, 30);
+  if ('lineSpacing' in patch) validated.lineSpacing = validateNumber(patch.lineSpacing, `${label} line spacing`, 0, 100);
+  if ('lines' in patch) validated.lines = validateNumber(patch.lines, `${label} lines`, 1, 10);
+  if ('position' in patch) {
+    if (!['top', 'bottom'].includes(patch.position)) {
+      throw httpError(400, `${label} position must be top or bottom.`);
+    }
+    validated.position = patch.position;
+  }
+  if ('rounded' in patch) validated.rounded = Boolean(patch.rounded);
+  if ('backgroundColor' in patch) {
+    const color = String(patch.backgroundColor).trim();
+    if (color.length > 80 || /[<>]/.test(color)) {
+      throw httpError(400, `Check the ${label} background color value.`);
+    }
+    validated.backgroundColor = color.startsWith('#') ? color.slice(1) : color;
+  }
   return validated;
 }
 
@@ -480,7 +551,7 @@ async function handleRequest(request, response) {
     sendFile(response, 'control.html', 'text/html; charset=utf-8');
     return;
   }
-  if (request.method === 'GET' && pathname === '/display') {
+  if (request.method === 'GET' && ['/display', '/display/subtitle', '/display/full'].includes(pathname)) {
     sendFile(response, 'display.html', 'text/html; charset=utf-8');
     return;
   }
@@ -545,7 +616,17 @@ async function handleRequest(request, response) {
     requireControlPin(request);
     const body = await readJsonBody(request);
     const patch = validateConfigPatch(body);
-    settings = { ...settings, ...patch };
+    settings = {
+      ...settings,
+      ...patch,
+      displays: patch.displays ? {
+        ...settings.displays,
+        ...Object.fromEntries(Object.entries(patch.displays).map(([type, displayPatch]) => [
+          type,
+          { ...settings.displays[type], ...displayPatch },
+        ])),
+      } : settings.displays,
+    };
     persistSettings();
     markRuntime({ lastAction: 'settings', lastError: null });
     sendJson(response, 200, { ok: true, state: publicState() });
@@ -653,11 +734,13 @@ if (require.main === module) {
 }
 
 module.exports = {
+  DEFAULT_DISPLAY_SETTINGS,
   DEFAULT_SETTINGS,
   buildCaptionUrl,
   createServer,
   getModeForSpeakerLanguage,
   getModeDetails,
+  normalizeSettings,
   parseCaptionSourceHtml,
   validateConfigPatch,
 };

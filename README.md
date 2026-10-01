@@ -1,13 +1,16 @@
 # My CaptionKit
 
-교회 통역 운영을 위한 로컬 CaptionKit 컨트롤러입니다. ProPresenter에는 변하지 않는 Display 주소를 한 번만 등록하고, 별도의 Control 화면에서 한국어↔영어 전환과 자막 시작·종료를 조절합니다.
+교회 통역 운영을 위한 로컬 CaptionKit 컨트롤러입니다. CaptionKit의 Speaker Language와 Live 상태를 자동으로 따라가며, ProPresenter에는 변하지 않는 Display 주소를 한 번만 등록하면 됩니다.
 
 ## 화면 구성
 
-- `http://127.0.0.1:4173/display` — 유튜브·프로젝터에 송출되는 고정 화면
-- `http://127.0.0.1:4173/control` — 운영자가 사용하는 조작 화면과 송출 미리보기
+- `http://127.0.0.1:4173/control` — 운영자가 사용하는 조작 화면과 두 송출 미리보기
+- `http://127.0.0.1:4173/display/full` — 프로젝터용 검은 전체 화면
+- `http://127.0.0.1:4173/display/subtitle` — ProPresenter의 PPT 위에 올리는 투명 자막
 
-Control에서 언어·줄 수·크기·위치를 바꾸면 열려 있는 Display 화면에 즉시 반영됩니다. ProPresenter의 주소는 바꿀 필요가 없습니다.
+Control에서 Full Screen과 Subtitle의 줄 수(1~10줄), 글자 크기, 줄 간격, 너비를 각각 바꾸면 해당 Display에 즉시 반영됩니다. Position과 배경 같은 세부 항목도 Settings에서 화면별로 조절할 수 있습니다.
+
+CaptionKit이 Live가 아닐 때 Control의 미리보기에는 설정을 확인할 수 있는 예시 문장이 반복해서 표시됩니다. 실제 Display 주소에는 예시가 나오지 않으며, Live가 시작되면 미리보기도 실제 자막으로 자동 전환됩니다.
 
 ## 처음 설정하기
 
@@ -36,12 +39,12 @@ node server.js --open
 
 Control 화면의 **Test microphone**은 이 PC에서 선택한 마이크가 실제 음성을 받는지 7초 동안 검사합니다. 이 테스트 권한은 로컬 주소(`127.0.0.1`)에만 적용됩니다.
 
-실제 자막 음성은 CaptionKit 대시보드가 받으므로 **Open CaptionKit**을 눌러 대시보드를 연 뒤 다음 항목도 설정해야 합니다.
+실제 자막 음성은 CaptionKit 대시보드가 받으므로 **Open CaptionKit**을 눌러 Settings에 저장한 handle의 대시보드를 연 뒤 다음 항목도 설정해야 합니다.
 
 1. CaptionKit의 **Open audio permissions**에서 Chrome 마이크 권한을 허용합니다.
 2. 오른쪽 입력 목록에서 사용할 마이크를 선택하고 **Test Inputs**로 레벨을 확인합니다.
 3. 자막 컨트롤에서 **📡 Signals**를 켭니다.
-4. 대시보드 탭을 열어 둔 상태로 Control의 **자막 시작**을 누릅니다.
+4. 대시보드 탭을 열어 둔 상태로 CaptionKit에서 Live를 시작합니다. 로컬 Display는 자동으로 연결됩니다.
 
 브라우저 보안상 로컬 Control이 `app.captionkit.com`의 마이크 권한을 대신 승인하거나 로컬 권한을 전달할 수는 없습니다.
 
@@ -52,7 +55,7 @@ Control 화면의 **Test microphone**은 이 PC에서 선택한 마이크가 실
 3. URL에 다음 주소를 입력합니다.
 
 ```text
-http://127.0.0.1:4173/display
+http://127.0.0.1:4173/display/subtitle
 ```
 
 4. Web Fill을 출력 전체 크기로 맞춥니다. 보통 `1920 × 1080`입니다.
@@ -61,13 +64,15 @@ http://127.0.0.1:4173/display
 송출 상태를 직접 확인하려면 다음 디버그 주소를 새 브라우저에서 열 수 있습니다. ProPresenter에는 디버그 주소가 아닌 위의 일반 Display 주소를 사용하세요.
 
 ```text
-http://127.0.0.1:4173/display?debug=1
+http://127.0.0.1:4173/display/subtitle?debug=1
 ```
 
 ## 예배 중 사용 순서
 
 1. CaptionKit 홈페이지에서 **Speaker Language**를 선택하고 Live를 시작합니다.
 2. 이 앱은 Live 상태를 계속 확인하며 자동으로 연결합니다. 한국어면 영어를, 영어면 한국어를 표시합니다.
+
+두 화면 모두 완성된 문장마다 새 줄로 표시합니다. 기존 `/display` 주소는 Subtitle과 동일하게 계속 사용할 수 있습니다.
 
 CaptionKit 번역은 원문 자막보다 약 1~2초 늦게 표시될 수 있습니다.
 

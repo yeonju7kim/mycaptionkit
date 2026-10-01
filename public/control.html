@@ -44,6 +44,33 @@
       <button type="button" id="noticeSettingsButton">Open Settings</button>
     </div>
 
+    <article class="panel quick-start-panel" aria-labelledby="quickStartTitle">
+      <div class="quick-start-top">
+        <div class="quick-start-title">
+          <span class="quick-start-icon" aria-hidden="true">⚡</span>
+          <div>
+            <span class="eyebrow">QUICK START</span>
+            <h2 id="quickStartTitle">How to start AI translation</h2>
+          </div>
+        </div>
+        <div class="guide-language-switch" role="tablist" aria-label="Instruction language">
+          <button class="is-active" type="button" role="tab" aria-selected="true" data-guide-language="en">English</button>
+          <button type="button" role="tab" aria-selected="false" data-guide-language="ko">한국어</button>
+          <button type="button" role="tab" aria-selected="false" data-guide-language="zh">中文</button>
+        </div>
+      </div>
+      <ol class="quick-start-steps">
+        <li>
+          <a data-captionkit-dashboard-link href="https://app.captionkit.com/kcic-ytpx2u" target="_blank" rel="noopener noreferrer">
+            <span class="quick-start-number">1</span><span data-guide-step="0">Open CaptionKit</span><span class="external-arrow" aria-hidden="true">↗</span>
+          </a>
+        </li>
+        <li><span class="quick-start-number">2</span><span data-guide-step="1">Find Caption Controls on the right.</span></li>
+        <li><span class="quick-start-number">3</span><span data-guide-step="2">Choose the Speaker Language.</span></li>
+        <li><span class="quick-start-number">4</span><span data-guide-step="3">Press the ⚡ button.</span></li>
+      </ol>
+    </article>
+
     <section class="dashboard-grid simple-dashboard-grid">
       <article class="panel microphone-panel" aria-labelledby="microphoneCheckTitle">
         <div class="panel-heading compact-heading">
@@ -64,46 +91,87 @@
             </select>
           </label>
           <button class="secondary-button microphone-test-button" id="microphoneTestButton" type="button">Test microphone</button>
-          <a class="primary-button microphone-dashboard-link" href="https://app.captionkit.com/" target="_blank" rel="noopener noreferrer" title="Select the same input, run Test Inputs, then enable Signals">Open CaptionKit ↗</a>
+          <a class="primary-button microphone-dashboard-link" id="captionkitDashboardLink" data-captionkit-dashboard-link href="https://app.captionkit.com/kcic-ytpx2u" target="_blank" rel="noopener noreferrer" title="Open this CaptionKit handle">Open CaptionKit ↗</a>
         </div>
       </article>
 
-      <article class="panel display-controls-panel">
+      <article class="panel display-controls-panel" data-display-settings="subtitle">
         <div class="panel-heading compact-heading">
-          <div><h2>Display</h2></div>
+          <div><h2>Subtitle</h2></div>
+          <span class="heading-note">Transparent · ProPresenter</span>
         </div>
         <div class="display-control-list">
           <div class="control-row">
             <span><strong>Lines</strong></span>
-            <div class="segmented" role="group" aria-label="Lines">
-              <button type="button" data-set="lines" data-value="1">1</button>
-              <button type="button" data-set="lines" data-value="2">2</button>
-              <button type="button" data-set="lines" data-value="3">3</button>
-              <button type="button" data-set="lines" data-value="4">4</button>
-              <button type="button" data-set="lines" data-value="5">5</button>
+            <div class="stepper">
+              <button type="button" data-display-type="subtitle" data-adjust="lines" data-delta="-1" aria-label="Decrease Subtitle lines">−</button>
+              <output id="subtitleLinesValue">1</output>
+              <button type="button" data-display-type="subtitle" data-adjust="lines" data-delta="1" aria-label="Increase Subtitle lines">+</button>
             </div>
           </div>
           <div class="control-row">
             <span><strong>Font size</strong></span>
             <div class="stepper">
-              <button type="button" data-adjust="fontSize" data-delta="-1" aria-label="Decrease font size">−</button>
-              <output id="fontSizeValue">10</output>
-              <button type="button" data-adjust="fontSize" data-delta="1" aria-label="Increase font size">+</button>
+              <button type="button" data-display-type="subtitle" data-adjust="fontSize" data-delta="-1" aria-label="Decrease Subtitle font size">−</button>
+              <output id="subtitleFontSizeValue">10</output>
+              <button type="button" data-display-type="subtitle" data-adjust="fontSize" data-delta="1" aria-label="Increase Subtitle font size">+</button>
+            </div>
+          </div>
+          <div class="control-row">
+            <span><strong>Line spacing</strong></span>
+            <div class="stepper">
+              <button type="button" data-display-type="subtitle" data-adjust="lineSpacing" data-delta="-5" aria-label="Decrease Subtitle line spacing">−</button>
+              <output id="subtitleLineSpacingValue">20%</output>
+              <button type="button" data-display-type="subtitle" data-adjust="lineSpacing" data-delta="5" aria-label="Increase Subtitle line spacing">+</button>
             </div>
           </div>
           <div class="control-row">
             <span><strong>Width</strong></span>
             <div class="stepper">
-              <button type="button" data-adjust="width" data-delta="-5" aria-label="Decrease width">−</button>
-              <output id="widthValue">80%</output>
-              <button type="button" data-adjust="width" data-delta="5" aria-label="Increase width">+</button>
+              <button type="button" data-display-type="subtitle" data-adjust="width" data-delta="-5" aria-label="Decrease Subtitle width">−</button>
+              <output id="subtitleWidthValue">80%</output>
+              <button type="button" data-display-type="subtitle" data-adjust="width" data-delta="5" aria-label="Increase Subtitle width">+</button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel display-controls-panel" data-display-settings="full">
+        <div class="panel-heading compact-heading">
+          <div><h2>Full Screen</h2></div>
+          <span class="heading-note">Black · Projector</span>
+        </div>
+        <div class="display-control-list">
+          <div class="control-row">
+            <span><strong>Lines</strong></span>
+            <div class="stepper">
+              <button type="button" data-display-type="full" data-adjust="lines" data-delta="-1" aria-label="Decrease Full Screen lines">−</button>
+              <output id="fullLinesValue">5</output>
+              <button type="button" data-display-type="full" data-adjust="lines" data-delta="1" aria-label="Increase Full Screen lines">+</button>
             </div>
           </div>
           <div class="control-row">
-            <span><strong>Position</strong></span>
-            <div class="segmented" role="group" aria-label="Position">
-              <button type="button" data-set="position" data-value="bottom">Bottom</button>
-              <button type="button" data-set="position" data-value="top">Top</button>
+            <span><strong>Font size</strong></span>
+            <div class="stepper">
+              <button type="button" data-display-type="full" data-adjust="fontSize" data-delta="-1" aria-label="Decrease Full Screen font size">−</button>
+              <output id="fullFontSizeValue">7</output>
+              <button type="button" data-display-type="full" data-adjust="fontSize" data-delta="1" aria-label="Increase Full Screen font size">+</button>
+            </div>
+          </div>
+          <div class="control-row">
+            <span><strong>Line spacing</strong></span>
+            <div class="stepper">
+              <button type="button" data-display-type="full" data-adjust="lineSpacing" data-delta="-5" aria-label="Decrease Full Screen line spacing">−</button>
+              <output id="fullLineSpacingValue">20%</output>
+              <button type="button" data-display-type="full" data-adjust="lineSpacing" data-delta="5" aria-label="Increase Full Screen line spacing">+</button>
+            </div>
+          </div>
+          <div class="control-row">
+            <span><strong>Width</strong></span>
+            <div class="stepper">
+              <button type="button" data-display-type="full" data-adjust="width" data-delta="-5" aria-label="Decrease Full Screen width">−</button>
+              <output id="fullWidthValue">90%</output>
+              <button type="button" data-display-type="full" data-adjust="width" data-delta="5" aria-label="Increase Full Screen width">+</button>
             </div>
           </div>
         </div>
@@ -112,17 +180,41 @@
       <article class="panel preview-panel">
         <div class="panel-heading preview-heading compact-heading">
           <div><h2>Preview</h2></div>
-          <button class="text-button" id="openDisplayButton" type="button">Open ↗</button>
         </div>
-        <div class="preview-frame-wrap">
-          <div class="preview-safe-area" aria-hidden="true"></div>
-          <iframe src="/display" id="displayPreview" title="Caption output preview"></iframe>
-          <div class="preview-label">PROGRAM OUTPUT</div>
-        </div>
-        <div class="display-address">
-          <span class="address-dot"></span>
-          <code id="displayAddress">http://127.0.0.1:4173/display</code>
-          <button type="button" id="copyDisplayTextButton">Copy</button>
+        <div class="preview-output-grid">
+          <section class="preview-output-card">
+            <div class="preview-output-heading">
+              <span><strong>Subtitle</strong><small>Transparent · ProPresenter</small></span>
+              <button class="text-button" type="button" data-open-display="subtitle">Open ↗</button>
+            </div>
+            <div class="preview-frame-wrap preview-subtitle-wrap">
+              <div class="preview-safe-area" aria-hidden="true"></div>
+              <iframe src="/display/subtitle?preview=1" title="Subtitle display preview"></iframe>
+              <div class="preview-label">SUBTITLE · TRANSPARENT</div>
+            </div>
+            <div class="display-address">
+              <span class="address-dot"></span>
+              <code data-display-address="subtitle">http://127.0.0.1:4173/display/subtitle</code>
+              <button type="button" data-copy-display="subtitle">Copy</button>
+            </div>
+          </section>
+
+          <section class="preview-output-card">
+            <div class="preview-output-heading">
+              <span><strong>Full Screen</strong><small>Black · Projector</small></span>
+              <button class="text-button" type="button" data-open-display="full">Open ↗</button>
+            </div>
+            <div class="preview-frame-wrap preview-full-wrap">
+              <div class="preview-safe-area" aria-hidden="true"></div>
+              <iframe src="/display/full?preview=1" title="Full Screen display preview"></iframe>
+              <div class="preview-label">FULL SCREEN · PROJECTOR</div>
+            </div>
+            <div class="display-address">
+              <span class="address-dot"></span>
+              <code data-display-address="full">http://127.0.0.1:4173/display/full</code>
+              <button type="button" data-copy-display="full">Copy</button>
+            </div>
+          </section>
         </div>
       </article>
     </section>
@@ -173,45 +265,48 @@
       </div>
 
       <div class="settings-section">
-        <h3>Output style</h3>
-        <div class="field-grid three-columns">
-          <label class="field">
-            <span>Width (%)</span>
-            <input id="widthInput" name="width" type="number" min="20" max="100" required>
-          </label>
-          <label class="field">
-            <span>Font size</span>
-            <input id="fontSizeInput" name="fontSize" type="number" min="2" max="30" required>
-          </label>
-          <label class="field">
-            <span>Lines</span>
-            <select id="linesInput" name="lines">
-              <option value="1">1 line</option>
-              <option value="2">2 lines</option>
-              <option value="3">3 lines</option>
-              <option value="4">4 lines</option>
-              <option value="5">5 lines</option>
-            </select>
-          </label>
+        <h3>Display styles</h3>
+        <div class="settings-display-grid">
+          <section class="settings-display-card">
+            <div class="settings-display-heading"><strong>Subtitle</strong><small>Transparent · ProPresenter</small></div>
+            <div class="field-grid two-columns">
+              <label class="field"><span>Width (%)</span><input id="subtitleWidthInput" type="number" min="20" max="100" required></label>
+              <label class="field"><span>Font size</span><input id="subtitleFontSizeInput" type="number" min="2" max="30" required></label>
+              <label class="field"><span>Lines</span><input id="subtitleLinesInput" type="number" min="1" max="10" required></label>
+              <label class="field"><span>Line spacing (%)</span><input id="subtitleLineSpacingInput" type="number" min="0" max="100" step="5" required></label>
+              <label class="field">
+                <span>Position</span>
+                <select id="subtitlePositionInput"><option value="bottom">Bottom</option><option value="top">Top</option></select>
+              </label>
+              <label class="field"><span>Background <em>optional</em></span><input id="subtitleBackgroundColorInput" type="text" placeholder="rgba(0,0,0,0.5)"></label>
+            </div>
+            <label class="toggle-field compact-toggle-field">
+              <input id="subtitleRoundedInput" type="checkbox">
+              <span class="toggle-track"><span></span></span>
+              <span><strong>Rounded corners</strong></span>
+            </label>
+          </section>
+
+          <section class="settings-display-card">
+            <div class="settings-display-heading"><strong>Full Screen</strong><small>Black · Projector</small></div>
+            <div class="field-grid two-columns">
+              <label class="field"><span>Width (%)</span><input id="fullWidthInput" type="number" min="20" max="100" required></label>
+              <label class="field"><span>Font size</span><input id="fullFontSizeInput" type="number" min="2" max="30" required></label>
+              <label class="field"><span>Lines</span><input id="fullLinesInput" type="number" min="1" max="10" required></label>
+              <label class="field"><span>Line spacing (%)</span><input id="fullLineSpacingInput" type="number" min="0" max="100" step="5" required></label>
+              <label class="field">
+                <span>Position</span>
+                <select id="fullPositionInput"><option value="bottom">Bottom</option><option value="top">Top</option></select>
+              </label>
+              <label class="field"><span>Caption background <em>optional</em></span><input id="fullBackgroundColorInput" type="text" placeholder="transparent"></label>
+            </div>
+            <label class="toggle-field compact-toggle-field">
+              <input id="fullRoundedInput" type="checkbox">
+              <span class="toggle-track"><span></span></span>
+              <span><strong>Rounded corners</strong></span>
+            </label>
+          </section>
         </div>
-        <div class="field-grid">
-          <label class="field">
-            <span>Position</span>
-            <select id="positionInput" name="position">
-              <option value="bottom">Bottom</option>
-              <option value="top">Top</option>
-            </select>
-          </label>
-          <label class="field">
-            <span>Background <em>optional</em></span>
-            <input id="backgroundColorInput" name="backgroundColor" type="text" placeholder="rgba(0,0,0,0.5)">
-          </label>
-        </div>
-        <label class="toggle-field">
-          <input id="roundedInput" name="rounded" type="checkbox">
-          <span class="toggle-track"><span></span></span>
-          <span><strong>Rounded corners</strong><small>Round the lower-third background</small></span>
-        </label>
       </div>
 
       <div class="dialog-actions">

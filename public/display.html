@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My CaptionKit Display</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="display-page">
+  <main class="display-stage" id="displayStage" aria-label="Caption output">
+    <iframe class="caption-layer is-active" id="captionFrameA" title="CaptionKit captions" allow="autoplay"></iframe>
+    <iframe class="caption-layer" id="captionFrameB" title="CaptionKit captions" allow="autoplay"></iframe>
+    <section class="sentence-caption-layer" id="sentenceCaptionLayer" aria-live="polite">
+      <div class="sentence-caption-list" id="sentenceCaptionList"></div>
+    </section>
+    <div class="display-debug" id="displayDebug" hidden>
+      <span class="status-dot"></span>
+      <span id="displayDebugText">Connecting</span>
+    </div>
+  </main>
+  <script src="/display.js" defer></script>
+</body>
+</html>

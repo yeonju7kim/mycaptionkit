@@ -1,0 +1,14 @@
+{
+  "name": "mycaptionkit",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A local CaptionKit control panel and stable ProPresenter display.",
+  "scripts": {
+    "start": "node server.js",
+    "open": "node server.js --open",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

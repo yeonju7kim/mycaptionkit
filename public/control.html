@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>My CaptionKit Control</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="control-page">
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <header class="topbar">
+    <a class="brand" href="/control" aria-label="My CaptionKit Control home">
+      <span class="brand-mark" aria-hidden="true"><span>CC</span></span>
+      <span>
+        <strong>My CaptionKit</strong>
+        <small>Live translation control</small>
+      </span>
+    </a>
+
+    <div class="topbar-actions">
+      <div class="connection-pill is-unknown" id="livePill" role="status">
+        <span class="status-dot"></span>
+        <span id="liveLabel">CHECKING</span>
+      </div>
+      <button class="icon-button" id="copyDisplayButton" type="button" title="Copy display URL" aria-label="Copy display URL">
+        <span aria-hidden="true">↗</span>
+      </button>
+      <button class="icon-button" id="openSettingsButton" type="button" title="Settings" aria-label="Open settings">
+        <span aria-hidden="true">⚙</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="control-main simple-control-main">
+    <div class="setup-notice is-hidden" id="setupNotice">
+      <div class="notice-icon" aria-hidden="true">!</div>
+      <div>
+        <strong>API key required</strong>
+        <p>Add your CaptionKit API key in Settings.</p>
+      </div>
+      <button type="button" id="noticeSettingsButton">Open Settings</button>
+    </div>
+
+    <section class="dashboard-grid simple-dashboard-grid">
+      <article class="panel caption-panel">
+        <div class="panel-heading compact-heading">
+          <div><h2>Captions</h2></div>
+          <span class="heading-note" id="lastUpdatedLabel">Ready</span>
+        </div>
+        <div class="caption-action-grid" role="group" aria-label="Caption controls">
+          <button class="caption-action language-action" type="button" data-start-mode="ko-en">
+            <span class="action-code">KO</span>
+            <span><strong>Korean → English</strong><small>Start streaming</small></span>
+          </button>
+          <button class="caption-action language-action" type="button" data-start-mode="en-ko">
+            <span class="action-code">EN</span>
+            <span><strong>English → Korean</strong><small>Start streaming</small></span>
+          </button>
+          <button class="caption-action stop-action" type="button" data-action="stop">
+            <span class="stop-square" aria-hidden="true"></span>
+            <span><strong>Stop</strong><small>End streaming</small></span>
+          </button>
+        </div>
+      </article>
+
+      <article class="panel microphone-panel" aria-labelledby="microphoneCheckTitle">
+        <div class="panel-heading compact-heading">
+          <div>
+            <span class="microphone-dot" id="microphoneDot" aria-hidden="true"></span>
+            <h2 id="microphoneCheckTitle">Microphone</h2>
+          </div>
+          <span class="heading-note" id="microphoneStatus" aria-live="polite">Ready to test</span>
+        </div>
+        <div class="microphone-level" id="microphoneLevel" role="progressbar" aria-label="Microphone input level" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <span id="microphoneLevelBar"></span>
+        </div>
+        <div class="microphone-actions">
+          <label class="microphone-device-field">
+            <span>Input</span>
+            <select id="microphoneDeviceSelect" aria-label="Microphone input">
+              <option value="">Default microphone</option>
+            </select>
+          </label>
+          <button class="secondary-button microphone-test-button" id="microphoneTestButton" type="button">Test microphone</button>
+          <a class="primary-button microphone-dashboard-link" href="https://app.captionkit.com/" target="_blank" rel="noopener noreferrer" title="Select the same input, run Test Inputs, then enable Signals">Open CaptionKit ↗</a>
+        </div>
+      </article>
+
+      <article class="panel display-controls-panel">
+        <div class="panel-heading compact-heading">
+          <div><h2>Display</h2></div>
+        </div>
+        <div class="display-control-list">
+          <div class="control-row">
+            <span><strong>Lines</strong></span>
+            <div class="segmented" role="group" aria-label="Lines">
+              <button type="button" data-set="lines" data-value="1">1</button>
+              <button type="button" data-set="lines" data-value="2">2</button>
+              <button type="button" data-set="lines" data-value="3">3</button>
+              <button type="button" data-set="lines" data-value="4">4</button>
+              <button type="button" data-set="lines" data-value="5">5</button>
+            </div>
+          </div>
+          <div class="control-row">
+            <span><strong>Font size</strong></span>
+            <div class="stepper">
+              <button type="button" data-adjust="fontSize" data-delta="-1" aria-label="Decrease font size">−</button>
+              <output id="fontSizeValue">10</output>
+              <button type="button" data-adjust="fontSize" data-delta="1" aria-label="Increase font size">+</button>
+            </div>
+          </div>
+          <div class="control-row">
+            <span><strong>Width</strong></span>
+            <div class="stepper">
+              <button type="button" data-adjust="width" data-delta="-5" aria-label="Decrease width">−</button>
+              <output id="widthValue">80%</output>
+              <button type="button" data-adjust="width" data-delta="5" aria-label="Increase width">+</button>
+            </div>
+          </div>
+          <div class="control-row">
+            <span><strong>Position</strong></span>
+            <div class="segmented" role="group" aria-label="Position">
+              <button type="button" data-set="position" data-value="bottom">Bottom</button>
+              <button type="button" data-set="position" data-value="top">Top</button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel preview-panel">
+        <div class="panel-heading preview-heading compact-heading">
+          <div><h2>Preview</h2></div>
+          <button class="text-button" id="openDisplayButton" type="button">Open ↗</button>
+        </div>
+        <div class="preview-frame-wrap">
+          <div class="preview-safe-area" aria-hidden="true"></div>
+          <iframe src="/display" id="displayPreview" title="Caption output preview"></iframe>
+          <div class="preview-label">PROGRAM OUTPUT</div>
+        </div>
+        <div class="display-address">
+          <span class="address-dot"></span>
+          <code id="displayAddress">http://127.0.0.1:4173/display</code>
+          <button type="button" id="copyDisplayTextButton">Copy</button>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <dialog class="dialog settings-dialog" id="settingsDialog">
+    <form method="dialog" class="dialog-shell" id="settingsForm">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">CONFIGURATION</p>
+          <h2>Settings</h2>
+          <p>Private values stay on this computer.</p>
+        </div>
+        <button class="dialog-close" value="cancel" type="submit" aria-label="Close">×</button>
+      </div>
+
+      <div class="settings-section">
+        <h3>Connection</h3>
+        <label class="field full-field">
+          <span>CaptionKit API Key</span>
+          <input id="apiKeyInput" name="apiKey" type="password" autocomplete="off" placeholder="Enter a new key or leave unchanged">
+          <small id="apiKeyHelp">Create one in CaptionKit Account settings.</small>
+        </label>
+        <div class="field-grid">
+          <label class="field">
+            <span>CaptionKit Handle</span>
+            <input id="handleInput" name="handle" type="text" required spellcheck="false">
+          </label>
+          <label class="field">
+            <span>Control PIN <em>optional</em></span>
+            <input id="controlPinInput" type="password" autocomplete="off" placeholder="Same PIN as your .env file">
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>Languages</h3>
+        <div class="field-grid">
+          <label class="field">
+            <span>Korean code</span>
+            <input id="koreanCodeInput" name="koreanCode" type="text" required spellcheck="false">
+          </label>
+          <label class="field">
+            <span>English code</span>
+            <input id="englishCodeInput" name="englishCode" type="text" required spellcheck="false">
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>Output style</h3>
+        <div class="field-grid three-columns">
+          <label class="field">
+            <span>Width (%)</span>
+            <input id="widthInput" name="width" type="number" min="20" max="100" required>
+          </label>
+          <label class="field">
+            <span>Font size</span>
+            <input id="fontSizeInput" name="fontSize" type="number" min="2" max="30" required>
+          </label>
+          <label class="field">
+            <span>Lines</span>
+            <select id="linesInput" name="lines">
+              <option value="1">1 line</option>
+              <option value="2">2 lines</option>
+              <option value="3">3 lines</option>
+              <option value="4">4 lines</option>
+              <option value="5">5 lines</option>
+            </select>
+          </label>
+        </div>
+        <div class="field-grid">
+          <label class="field">
+            <span>Position</span>
+            <select id="positionInput" name="position">
+              <option value="bottom">Bottom</option>
+              <option value="top">Top</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Background <em>optional</em></span>
+            <input id="backgroundColorInput" name="backgroundColor" type="text" placeholder="rgba(0,0,0,0.5)">
+          </label>
+        </div>
+        <label class="toggle-field">
+          <input id="roundedInput" name="rounded" type="checkbox">
+          <span class="toggle-track"><span></span></span>
+          <span><strong>Rounded corners</strong><small>Round the lower-third background</small></span>
+        </label>
+      </div>
+
+      <div class="dialog-actions">
+        <button class="secondary-button" value="cancel" type="submit">Cancel</button>
+        <button class="primary-button" id="saveSettingsButton" value="default" type="submit">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="dialog confirm-dialog" id="stopDialog">
+    <form method="dialog" class="dialog-shell compact-dialog">
+      <div class="confirm-symbol" aria-hidden="true">■</div>
+      <h2>Stop captions?</h2>
+      <p>This will end the current CaptionKit stream.</p>
+      <div class="dialog-actions">
+        <button class="secondary-button" value="cancel" type="submit">Cancel</button>
+        <button class="danger-button" id="confirmStopButton" value="confirm" type="submit">Stop</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="/control.js" defer></script>
+</body>
+</html>

@@ -122,6 +122,9 @@ test('로컬 서버가 Control, Display, 공개 상태를 제공한다', async (
   const controlHtml = await controlResponse.text();
   assert.doesNotMatch(controlHtml, /data-action="(?:start|stop)"/);
   assert.doesNotMatch(controlHtml, /Caption controls/);
+  assert.doesNotMatch(controlHtml, /id="copyDisplayButton"/);
+  assert.doesNotMatch(controlHtml, /brand-mark/);
+  assert.match(controlHtml, /<strong>AI Translator<\/strong>/);
   assert.match(controlHtml, /microphoneTestButton/);
   assert.match(controlHtml, /https:\/\/app\.captionkit\.com\//);
   assert.ok(controlHtml.indexOf('quick-start-panel') < controlHtml.indexOf('dashboard-grid'));
@@ -130,9 +133,12 @@ test('로컬 서버가 Control, Display, 공개 상태를 제공한다', async (
   assert.match(controlHtml, /data-guide-language="en"/);
   assert.match(controlHtml, /data-guide-language="ko"/);
   assert.match(controlHtml, /data-guide-language="zh"/);
+  assert.match(controlHtml, /data-guide-mode="start"/);
+  assert.match(controlHtml, /data-guide-mode="change"/);
   assert.match(controlHtml, /data-captionkit-dashboard-link/);
-  assert.match(controlHtml, /Choose the Speaker Language\./);
-  assert.match(controlHtml, /Press the ⚡ button\./);
+  assert.match(controlHtml, /Choose Speaker Language\./);
+  assert.match(controlHtml, /Press ⚡ to start\./);
+  assert.match(controlHtml, /Click Broadcast if hidden\./);
   assert.match(controlHtml, /rel="icon" href="\/ai-translator\.ico"/);
   const displayHtml = await displayResponse.text();
   assert.match(displayHtml, /captionFrameA/);
@@ -146,6 +152,11 @@ test('로컬 서버가 Control, Display, 공개 상태를 제공한다', async (
   assert.match(controlHtml, /data-display-address="full"/);
   assert.match(controlHtml, /src="\/display\/subtitle\?preview=1"/);
   assert.match(controlHtml, /src="\/display\/full\?preview=1"/);
+
+  const displayScript = await (await fetch(`${baseUrl}/display.js`)).text();
+  assert.match(displayScript, /const hasActualCaption = completedCaptions\.length > 0/);
+  assert.match(displayScript, /previewMode && \(currentState\?\.runtime\?\.live !== true \|\| !hasActualCaption\)/);
+  assert.match(displayScript, /sentenceLayer\.classList\.add\('is-active'\)/);
 
   const state = await stateResponse.json();
   assert.equal(state.ok, true);

@@ -6,7 +6,10 @@ const elements = {
   setupNotice: document.querySelector('#setupNotice'),
   captionkitDashboardLinks: document.querySelectorAll('[data-captionkit-dashboard-link]'),
   quickStartTitle: document.querySelector('#quickStartTitle'),
+  quickStartSteps: document.querySelector('.quick-start-steps'),
+  quickStartStepItems: document.querySelectorAll('[data-guide-step-item]'),
   quickStartStepLabels: document.querySelectorAll('[data-guide-step]'),
+  guideModeButtons: document.querySelectorAll('[data-guide-mode]'),
   guideLanguageButtons: document.querySelectorAll('[data-guide-language]'),
   settingsDialog: document.querySelector('#settingsDialog'),
   settingsForm: document.querySelector('#settingsForm'),
@@ -28,37 +31,76 @@ const elements = {
 const PIN_STORAGE_KEY = 'mycaptionkit-control-pin';
 const MIC_DEVICE_STORAGE_KEY = 'mycaptionkit-microphone-device';
 const GUIDE_LANGUAGE_STORAGE_KEY = 'mycaptionkit-guide-language';
+const GUIDE_MODE_STORAGE_KEY = 'mycaptionkit-guide-mode';
 const DISPLAY_TYPES = ['subtitle', 'full'];
 const GUIDE_COPY = {
   en: {
-    title: 'How to start AI translation',
-    steps: [
-      'Open CaptionKit',
-      'Find Caption Controls on the right.',
-      'Choose the Speaker Language.',
-      'Press the ⚡ button.',
-    ],
+    start: {
+      title: 'How to start AI translation',
+      steps: [
+        'Open CaptionKit',
+        'Find Caption Controls on the right. (Click Broadcast if hidden.)',
+        'Choose Speaker Language.',
+        'Press ⚡ to start.',
+      ],
+    },
+    change: {
+      title: 'How to change Speaker Language',
+      steps: [
+        'Open CaptionKit',
+        'Find Caption Controls on the right. (Click Broadcast if hidden.)',
+        'Stop translation.',
+        'Change Speaker Language.',
+        'Press ⚡ to start.',
+      ],
+    },
   },
   ko: {
-    title: 'AI 통역 시작하기',
-    steps: [
-      'CaptionKit을 엽니다.',
-      '오른쪽의 Caption Controls를 찾습니다.',
-      'Speaker Language를 선택합니다.',
-      '⚡ 버튼을 누릅니다.',
-    ],
+    start: {
+      title: 'AI 통역 시작하기',
+      steps: [
+        'CaptionKit을 엽니다.',
+        '오른쪽의 Caption Controls를 찾습니다. (안 보이면 Broadcast 클릭)',
+        'Speaker Language를 선택합니다.',
+        '⚡ 버튼을 눌러 시작합니다.',
+      ],
+    },
+    change: {
+      title: 'Speaker Language 변경하기',
+      steps: [
+        'CaptionKit을 엽니다.',
+        '오른쪽의 Caption Controls를 찾습니다. (안 보이면 Broadcast 클릭)',
+        '통역을 중지합니다.',
+        'Speaker Language를 변경합니다.',
+        '⚡ 버튼을 눌러 시작합니다.',
+      ],
+    },
   },
   zh: {
-    title: '开始 AI 翻译',
-    steps: [
-      '打开 CaptionKit。',
-      '在右侧找到 Caption Controls。',
-      '选择 Speaker Language。',
-      '点击 ⚡ 按钮。',
-    ],
+    start: {
+      title: '开始 AI 翻译',
+      steps: [
+        '打开 CaptionKit。',
+        '在右侧找到 Caption Controls。（未显示时点击 Broadcast）',
+        '选择 Speaker Language。',
+        '点击 ⚡ 开始。',
+      ],
+    },
+    change: {
+      title: '更改 Speaker Language',
+      steps: [
+        '打开 CaptionKit。',
+        '在右侧找到 Caption Controls。（未显示时点击 Broadcast）',
+        '停止翻译。',
+        '更改 Speaker Language。',
+        '点击 ⚡ 开始。',
+      ],
+    },
   },
 };
 let appState = null;
+let activeGuideLanguage = 'en';
+let activeGuideMode = 'start';
 let toastTimer = null;
 let statusPollingDisabled = false;
 let microphoneStream = null;
@@ -115,19 +157,37 @@ function displayElement(type, suffix) {
   return document.querySelector(`#${type}${suffix}`);
 }
 
-function selectGuideLanguage(language) {
-  const selectedLanguage = GUIDE_COPY[language] ? language : 'en';
-  const copy = GUIDE_COPY[selectedLanguage];
+function renderGuide() {
+  const copy = GUIDE_COPY[activeGuideLanguage][activeGuideMode];
   elements.quickStartTitle.textContent = copy.title;
-  elements.quickStartStepLabels.forEach((label, index) => {
-    label.textContent = copy.steps[index];
+  elements.quickStartSteps.style.setProperty('--guide-columns', copy.steps.length);
+  elements.quickStartStepItems.forEach((item, index) => {
+    const visible = index < copy.steps.length;
+    item.hidden = !visible;
+    if (visible) elements.quickStartStepLabels[index].textContent = copy.steps[index];
   });
   elements.guideLanguageButtons.forEach((button) => {
-    const selected = button.dataset.guideLanguage === selectedLanguage;
+    const selected = button.dataset.guideLanguage === activeGuideLanguage;
     button.classList.toggle('is-active', selected);
     button.setAttribute('aria-selected', String(selected));
   });
-  localStorage.setItem(GUIDE_LANGUAGE_STORAGE_KEY, selectedLanguage);
+  elements.guideModeButtons.forEach((button) => {
+    const selected = button.dataset.guideMode === activeGuideMode;
+    button.classList.toggle('is-active', selected);
+    button.setAttribute('aria-selected', String(selected));
+  });
+}
+
+function selectGuideLanguage(language) {
+  activeGuideLanguage = GUIDE_COPY[language] ? language : 'en';
+  localStorage.setItem(GUIDE_LANGUAGE_STORAGE_KEY, activeGuideLanguage);
+  renderGuide();
+}
+
+function selectGuideMode(mode) {
+  activeGuideMode = mode === 'change' ? 'change' : 'start';
+  localStorage.setItem(GUIDE_MODE_STORAGE_KEY, activeGuideMode);
+  renderGuide();
 }
 
 function renderDisplayControls(settings) {
@@ -429,6 +489,10 @@ elements.guideLanguageButtons.forEach((button) => {
   button.addEventListener('click', () => selectGuideLanguage(button.dataset.guideLanguage));
 });
 
+elements.guideModeButtons.forEach((button) => {
+  button.addEventListener('click', () => selectGuideMode(button.dataset.guideMode));
+});
+
 elements.settingsForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   if (event.submitter?.value === 'cancel') {
@@ -463,7 +527,6 @@ elements.settingsForm.addEventListener('submit', async (event) => {
 
 document.querySelector('#openSettingsButton').addEventListener('click', openSettings);
 document.querySelector('#noticeSettingsButton').addEventListener('click', openSettings);
-document.querySelector('#copyDisplayButton').addEventListener('click', () => copyDisplayAddress('subtitle'));
 elements.microphoneTestButton.addEventListener('click', startMicrophoneTest);
 elements.microphoneDeviceSelect.addEventListener('change', () => {
   const deviceId = elements.microphoneDeviceSelect.value;
@@ -477,6 +540,7 @@ window.addEventListener('pagehide', () => stopMicrophoneTest());
 
 async function initialize() {
   selectGuideLanguage(localStorage.getItem(GUIDE_LANGUAGE_STORAGE_KEY) || 'en');
+  selectGuideMode(localStorage.getItem(GUIDE_MODE_STORAGE_KEY) || 'start');
   updateDisplayAddresses();
   refreshMicrophoneDevices().catch(() => {});
   navigator.mediaDevices?.addEventListener?.('devicechange', () => refreshMicrophoneDevices().catch(() => {}));

@@ -104,7 +104,10 @@ function captionKey(caption) {
 function renderCaptions() {
   const displaySettings = currentState?.settings?.displays?.[displayType];
   const limit = Number(displaySettings?.lines) || 1;
-  if (previewMode && currentState?.runtime?.live !== true) {
+  const hasActualCaption = completedCaptions.length > 0 || Boolean(partialCaption?.text?.trim());
+  if (previewMode && (currentState?.runtime?.live !== true || !hasActualCaption)) {
+    sentenceLayer.classList.add('is-active');
+    frames.forEach((frame) => frame.classList.add('is-fallback-hidden'));
     const examples = Array.from({ length: limit }, (_, index) => ({
       text: EXAMPLE_CAPTIONS[index % EXAMPLE_CAPTIONS.length],
       example: true,

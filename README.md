@@ -102,9 +102,17 @@ http://127.0.0.1:4173/display/subtitle?debug=1
 ## 예배 중 사용 순서
 
 1. Control 맨 위의 **Open CaptionKit**을 누릅니다.
-2. 오른쪽 **Caption Controls**에서 **Speaker Language**를 선택합니다.
+2. 오른쪽 **Caption Controls**에서 **Speaker Language**를 선택합니다. Caption Controls가 안 보이면 먼저 **Broadcast**를 누릅니다.
 3. **⚡ 버튼**을 눌러 AI 통역을 시작합니다.
 4. 이 앱은 Live 상태를 계속 확인하며 자동으로 연결합니다. 한국어면 영어를, 영어면 한국어를 표시합니다.
+
+### Speaker Language 바꾸기
+
+1. **Open CaptionKit**을 누릅니다.
+2. 오른쪽의 **Caption Controls**를 찾습니다. 안 보이면 **Broadcast**를 누릅니다.
+3. 진행 중인 통역을 중지합니다.
+4. **Speaker Language**를 변경합니다.
+5. **⚡ 버튼**을 눌러 다시 시작합니다.
 
 두 화면 모두 완성된 문장마다 새 줄로 표시합니다. 기존 `/display` 주소는 Subtitle과 동일하게 계속 사용할 수 있습니다.
 

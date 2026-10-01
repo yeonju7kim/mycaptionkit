@@ -86,8 +86,8 @@ select:focus-visible {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 82px;
-  padding: 0 max(28px, calc((100vw - 1280px) / 2));
+  min-height: 56px;
+  padding: 0 max(20px, calc((100vw - 1280px) / 2));
   border-bottom: 1px solid var(--line);
   background: rgba(8, 11, 18, 0.78);
   backdrop-filter: blur(18px);
@@ -96,71 +96,40 @@ select:focus-visible {
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 13px;
   color: inherit;
   text-decoration: none;
 }
 
-.brand-mark {
-  display: grid;
-  width: 42px;
-  height: 42px;
-  place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 13px;
-  background: linear-gradient(145deg, #76a1ff, #4c68d5);
-  box-shadow: 0 8px 24px rgba(72, 101, 208, 0.3);
-  transform: rotate(-3deg);
-}
-
-.brand-mark span {
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: -0.08em;
-  transform: rotate(3deg);
-}
-
-.brand strong,
-.brand small {
-  display: block;
-}
-
 .brand strong {
-  font-size: 15px;
-  letter-spacing: -0.02em;
-}
-
-.brand small {
-  margin-top: 2px;
-  color: var(--muted);
-  font-size: 11px;
-  letter-spacing: 0.035em;
+  color: #dce1e9;
+  font-size: 12px;
+  letter-spacing: 0.01em;
 }
 
 .topbar-actions {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 7px;
 }
 
 .connection-pill {
   display: flex;
   align-items: center;
-  gap: 8px;
-  height: 38px;
-  padding: 0 14px;
+  gap: 7px;
+  height: 32px;
+  padding: 0 11px;
   border: 1px solid var(--line);
   border-radius: 999px;
   color: var(--muted);
   background: rgba(255, 255, 255, 0.035);
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.03em;
 }
 
 .status-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   flex: 0 0 auto;
   border-radius: 50%;
   background: #747d8d;
@@ -194,21 +163,23 @@ select:focus-visible {
   box-shadow: 0 0 0 4px rgba(255, 101, 114, 0.12);
 }
 
-.icon-button {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  padding: 0;
-  place-items: center;
+.settings-button {
+  display: inline-flex;
+  height: 32px;
+  padding: 0 11px;
+  align-items: center;
+  gap: 6px;
   border: 1px solid var(--line);
-  border-radius: 11px;
+  border-radius: 9px;
   color: var(--soft);
   background: rgba(255, 255, 255, 0.035);
   cursor: pointer;
+  font-size: 10px;
+  font-weight: 800;
   transition: 150ms ease;
 }
 
-.icon-button:hover {
+.settings-button:hover {
   border-color: var(--line-strong);
   color: white;
   background: rgba(255, 255, 255, 0.075);
@@ -446,12 +417,12 @@ select:focus-visible {
 }
 
 .simple-control-main {
-  padding-top: 38px;
+  padding-top: 22px;
 }
 
 .quick-start-panel {
   margin-bottom: 17px;
-  padding: 20px 24px;
+  padding: 17px 20px;
 }
 
 .quick-start-top,
@@ -461,9 +432,10 @@ select:focus-visible {
 }
 
 .quick-start-top {
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 18px;
-  margin-bottom: 14px;
+  margin-bottom: 11px;
 }
 
 .quick-start-title {
@@ -486,15 +458,23 @@ select:focus-visible {
 .quick-start-title .eyebrow {
   display: block;
   margin-bottom: 3px;
+  font-size: 11px;
 }
 
 .quick-start-title h2 {
   margin: 0;
-  font-size: 15px;
+  font-size: 16px;
   letter-spacing: -0.025em;
 }
 
-.guide-language-switch {
+.quick-start-controls {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.guide-language-switch,
+.guide-mode-switch {
   display: flex;
   padding: 3px;
   border: 1px solid var(--line);
@@ -502,7 +482,8 @@ select:focus-visible {
   background: rgba(0, 0, 0, 0.18);
 }
 
-.guide-language-switch button {
+.guide-language-switch button,
+.guide-mode-switch button {
   min-height: 29px;
   padding: 0 11px;
   border: 0;
@@ -510,11 +491,12 @@ select:focus-visible {
   color: var(--muted);
   background: transparent;
   cursor: pointer;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 800;
 }
 
-.guide-language-switch button.is-active {
+.guide-language-switch button.is-active,
+.guide-mode-switch button.is-active {
   color: #fff;
   background: rgba(95, 140, 255, 0.18);
   box-shadow: inset 0 0 0 1px rgba(120, 163, 255, 0.2);
@@ -522,8 +504,8 @@ select:focus-visible {
 
 .quick-start-steps {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(var(--guide-columns, 4), minmax(0, 1fr));
+  gap: 7px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -537,8 +519,8 @@ select:focus-visible {
 }
 
 .quick-start-steps li {
-  min-height: 49px;
-  padding: 9px 11px;
+  min-height: 44px;
+  padding: 7px 9px;
   border: 1px solid var(--line);
   border-radius: 11px;
   color: #d9dee8;
@@ -548,14 +530,18 @@ select:focus-visible {
   line-height: 1.35;
 }
 
+.quick-start-steps li[hidden] {
+  display: none;
+}
+
 .quick-start-steps li:first-child {
   padding: 0;
 }
 
 .quick-start-steps a {
   width: 100%;
-  min-height: 49px;
-  padding: 9px 11px;
+  min-height: 44px;
+  padding: 7px 9px;
   color: #e9f0ff;
   text-decoration: none;
 }
@@ -575,7 +561,7 @@ select:focus-visible {
   color: var(--blue-bright);
   background: rgba(95, 140, 255, 0.13);
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 900;
 }
 
@@ -949,6 +935,7 @@ select:focus-visible {
 
 .display-control-list {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1px;
   overflow: hidden;
   border: 1px solid var(--line);
@@ -962,7 +949,7 @@ select:focus-visible {
   padding: 9px 12px 9px 15px;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 8px;
   background: rgba(16, 21, 31, 0.96);
 }
 
@@ -1015,7 +1002,8 @@ select:focus-visible {
 }
 
 .stepper {
-  grid-template-columns: 38px 67px 38px;
+  min-width: 130px;
+  grid-template-columns: 34px 56px 34px;
 }
 
 .stepper button {
@@ -1653,7 +1641,7 @@ select:focus-visible {
 }
 
 .sentence-caption.is-example {
-  opacity: 0.82;
+  opacity: 1;
 }
 
 /* Dedicated monitor display: opaque stage and transcript-like captions. */
@@ -1756,7 +1744,6 @@ select:focus-visible {
 }
 
 @media (max-width: 560px) {
-  .brand small,
   .heading-note {
     display: none;
   }
@@ -1790,7 +1777,16 @@ select:focus-visible {
     align-self: flex-start;
   }
 
+  .quick-start-controls {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   .quick-start-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .display-control-list {
     grid-template-columns: 1fr;
   }
 

@@ -66,8 +66,8 @@ http://127.0.0.1:4173/display?debug=1
 
 ## 예배 중 사용 순서
 
-1. **Korean → English** 또는 **English → Korean**을 누릅니다. 언어 방향을 적용하고 스트리밍을 즉시 시작합니다.
-2. 끝날 때 **Stop**을 누르고 확인합니다.
+1. CaptionKit 홈페이지에서 **Speaker Language**를 선택하고 Live를 시작합니다.
+2. 이 앱은 Live 상태를 계속 확인하며 자동으로 연결합니다. 한국어면 영어를, 영어면 한국어를 표시합니다.
 
 CaptionKit 번역은 원문 자막보다 약 1~2초 늦게 표시될 수 있습니다.
 

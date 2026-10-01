@@ -21,6 +21,7 @@ let socketKey = '';
 let reconnectTimer = null;
 let reconnectDelay = 1000;
 let heartbeatTimer = null;
+let connectionAttempt = 0;
 let completedCaptions = [];
 let partialCaption = null;
 const seenCaptions = new Set();
@@ -137,19 +138,44 @@ function closeCaptionSocket() {
   }
 }
 
-function buildSocketUrl(source, channel) {
+function outputLanguageForSpeaker(speakerLanguage, settings) {
+  const speakerBase = String(speakerLanguage || '').toLowerCase().split('-')[0];
+  const koreanBase = settings.koreanCode.toLowerCase().split('-')[0];
+  const englishBase = settings.englishCode.toLowerCase().split('-')[0];
+  if (speakerBase === koreanBase) return settings.englishCode;
+  if (speakerBase === englishBase) return settings.koreanCode;
+  return null;
+}
+
+function stateOutputLanguage(state) {
+  return state.mode.id === 'ko-en' ? state.settings.englishCode : state.settings.koreanCode;
+}
+
+function clearCaptions() {
+  completedCaptions = [];
+  partialCaption = null;
+  seenCaptions.clear();
+  renderCaptions();
+}
+
+function buildSocketUrl(source, channels) {
   const url = new URL(source.realtimeUrl);
-  const cursorName = `last_ack_${channel}`;
-  url.searchParams.append('channel', channel);
-  // Restore only very recent captions after a browser refresh.
-  url.searchParams.set(cursorName, replayAll ? '0' : String(Date.now() - 15_000));
+  for (const channel of channels) {
+    url.searchParams.append('channel', channel);
+    const cursorName = `last_ack_${channel}`;
+    const shouldReplayAll = replayAll && channel.includes(':captions:');
+    url.searchParams.set(cursorName, shouldReplayAll ? '0' : String(Date.now() - 15_000));
+  }
   return url.toString();
 }
 
-function openCaptionSocket(source, channel, key) {
+function openCaptionSocket(source, language, key) {
   if (key !== socketKey) return;
   closeCaptionSocket();
-  const socket = new WebSocket(buildSocketUrl(source, channel));
+  const channelBase = `${source.accountId}:${source.profileSlug}`;
+  const captionChannel = `${channelBase}:captions:${language}`;
+  const statusChannel = `${channelBase}:status`;
+  const socket = new WebSocket(buildSocketUrl(source, [captionChannel, statusChannel]));
   captionSocket = socket;
   setDebug('Connecting to captions', false);
 
@@ -172,7 +198,19 @@ function openCaptionSocket(source, channel, key) {
     } catch {
       return;
     }
-    if (message.channel !== channel || !message.data) return;
+    if (!message.data) return;
+    if (message.channel === statusChannel && message.event === 'status.update') {
+      const nextLanguage = outputLanguageForSpeaker(message.data.options?.language, currentState.settings);
+      if (nextLanguage && nextLanguage.toLowerCase() !== language.toLowerCase()) {
+        const nextKey = `${currentState.settings.handle}:${nextLanguage}`;
+        connectionAttempt += 1;
+        socketKey = nextKey;
+        clearCaptions();
+        openCaptionSocket(source, nextLanguage, nextKey);
+      }
+      return;
+    }
+    if (message.channel !== captionChannel) return;
     if (Array.isArray(message.data)) {
       for (const caption of message.data) acceptCaption(caption, message.event === 'transcription.final');
       return;
@@ -188,7 +226,7 @@ function openCaptionSocket(source, channel, key) {
     heartbeatTimer = null;
     captionSocket = null;
     setDebug('Caption connection retrying', false);
-    reconnectTimer = setTimeout(() => openCaptionSocket(source, channel, key), reconnectDelay);
+    reconnectTimer = setTimeout(() => openCaptionSocket(source, language, key), reconnectDelay);
     reconnectDelay = Math.min(reconnectDelay * 2, 10_000);
   };
 
@@ -196,26 +234,23 @@ function openCaptionSocket(source, channel, key) {
 }
 
 async function connectCaptionStream(state) {
-  const language = state.mode.id === 'ko-en'
-    ? state.settings.englishCode
-    : state.settings.koreanCode;
-  const nextKey = `${state.settings.handle}:${language}`;
-  if (nextKey === socketKey && captionSocket) return;
+  const fallbackLanguage = stateOutputLanguage(state);
+  const fallbackKey = `${state.settings.handle}:${fallbackLanguage}`;
+  if (fallbackKey === socketKey && captionSocket) return;
 
-  socketKey = nextKey;
+  const attempt = ++connectionAttempt;
   closeCaptionSocket();
-  completedCaptions = [];
-  partialCaption = null;
-  seenCaptions.clear();
-  renderCaptions();
+  clearCaptions();
 
   try {
     const response = await fetch('/api/caption-source', { cache: 'no-store' });
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.error || 'Caption source unavailable');
-    if (nextKey !== socketKey) return;
-    const channel = `${payload.source.accountId}:${payload.source.profileSlug}:captions:${language}`;
-    openCaptionSocket(payload.source, channel, nextKey);
+    if (attempt !== connectionAttempt) return;
+    const language = outputLanguageForSpeaker(payload.source.speakerLanguage, state.settings) || fallbackLanguage;
+    const nextKey = `${state.settings.handle}:${language}`;
+    socketKey = nextKey;
+    openCaptionSocket(payload.source, language, nextKey);
   } catch (error) {
     sentenceLayer.classList.remove('is-active');
     frames.forEach((frame) => frame.classList.remove('is-fallback-hidden'));

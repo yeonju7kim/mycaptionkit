@@ -45,27 +45,6 @@
     </div>
 
     <section class="dashboard-grid simple-dashboard-grid">
-      <article class="panel caption-panel">
-        <div class="panel-heading compact-heading">
-          <div><h2>Captions</h2></div>
-          <span class="heading-note" id="lastUpdatedLabel">Ready</span>
-        </div>
-        <div class="caption-action-grid" role="group" aria-label="Caption controls">
-          <button class="caption-action language-action" type="button" data-start-mode="ko-en">
-            <span class="action-code">KO</span>
-            <span><strong>Korean → English</strong><small>Start streaming</small></span>
-          </button>
-          <button class="caption-action language-action" type="button" data-start-mode="en-ko">
-            <span class="action-code">EN</span>
-            <span><strong>English → Korean</strong><small>Start streaming</small></span>
-          </button>
-          <button class="caption-action stop-action" type="button" data-action="stop">
-            <span class="stop-square" aria-hidden="true"></span>
-            <span><strong>Stop</strong><small>End streaming</small></span>
-          </button>
-        </div>
-      </article>
-
       <article class="panel microphone-panel" aria-labelledby="microphoneCheckTitle">
         <div class="panel-heading compact-heading">
           <div>
@@ -238,18 +217,6 @@
       <div class="dialog-actions">
         <button class="secondary-button" value="cancel" type="submit">Cancel</button>
         <button class="primary-button" id="saveSettingsButton" value="default" type="submit">Save</button>
-      </div>
-    </form>
-  </dialog>
-
-  <dialog class="dialog confirm-dialog" id="stopDialog">
-    <form method="dialog" class="dialog-shell compact-dialog">
-      <div class="confirm-symbol" aria-hidden="true">■</div>
-      <h2>Stop captions?</h2>
-      <p>This will end the current CaptionKit stream.</p>
-      <div class="dialog-actions">
-        <button class="secondary-button" value="cancel" type="submit">Cancel</button>
-        <button class="danger-button" id="confirmStopButton" value="confirm" type="submit">Stop</button>
       </div>
     </form>
   </dialog>

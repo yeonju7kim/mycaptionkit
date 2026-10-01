@@ -133,18 +133,20 @@ function parseCaptionSourceHtml(html) {
   const normalized = String(html).replaceAll('\\"', '"');
   const accountMatch = normalized.match(/"account_id":"([0-9a-f-]{36})"/i);
   const profileMatch = normalized.match(/"id":"[^"]+","account_id":"[^"]+","slug":"([A-Za-z0-9_-]+)"/i);
+  const languageMatch = normalized.match(/"settings":\{[^{}]*"language":"([A-Za-z0-9-]+)"/i);
 
   if (!accountMatch) throw httpError(502, 'Could not find the CaptionKit realtime account.');
   return {
     accountId: accountMatch[1],
     profileSlug: profileMatch?.[1] || 'default',
+    speakerLanguage: languageMatch?.[1] || null,
     realtimeUrl: CAPTION_REALTIME_URL,
   };
 }
 
-async function fetchCaptionSource() {
+async function fetchCaptionSource(forceRefresh = false) {
   const handle = settings.handle.trim();
-  if (captionSourceCache?.handle === handle && captionSourceCache.expiresAt > Date.now()) {
+  if (!forceRefresh && captionSourceCache?.handle === handle && captionSourceCache.expiresAt > Date.now()) {
     return captionSourceCache.value;
   }
 
@@ -161,6 +163,35 @@ async function fetchCaptionSource() {
   const value = parseCaptionSourceHtml(await response.text());
   captionSourceCache = { handle, value, expiresAt: Date.now() + 10 * 60_000 };
   return value;
+}
+
+function getModeForSpeakerLanguage(language, sourceSettings = settings) {
+  const baseLanguage = String(language || '').trim().toLowerCase().split('-')[0];
+  const koreanBase = sourceSettings.koreanCode.toLowerCase().split('-')[0];
+  const englishBase = sourceSettings.englishCode.toLowerCase().split('-')[0];
+  if (baseLanguage === koreanBase) return 'ko-en';
+  if (baseLanguage === englishBase) return 'en-ko';
+  return null;
+}
+
+function syncModeFromSpeakerLanguage(language) {
+  const detectedMode = getModeForSpeakerLanguage(language);
+  if (!detectedMode) return null;
+  if (settings.activeMode !== detectedMode) {
+    settings.activeMode = detectedMode;
+    persistSettings();
+    broadcastState();
+  }
+  return detectedMode;
+}
+
+function speakerLanguageFromStatus(status) {
+  return status?.inputLanguage ||
+    status?.language ||
+    status?.options?.language ||
+    status?.status?.options?.language ||
+    status?.stream?.options?.language ||
+    null;
 }
 
 function publicState() {
@@ -364,13 +395,18 @@ async function performAction(action, requestedMode) {
   const event = signalMap[action];
   if (!event) throw httpError(400, 'Unsupported action.');
 
-  // Starting always reapplies the selected source language so a service can
-  // begin correctly without requiring the operator to press the mode again.
+  // Without an explicit legacy mode, follow the Speaker Language selected in
+  // CaptionKit. The start signal must not overwrite that dashboard choice.
   if (action === 'start') {
-    await sendSignal('language:select', getModeDetails().sourceLanguage);
-    // CaptionKit processes signals asynchronously. Give the dashboard time to
-    // apply the language before it receives the stream start command.
-    await delay(800);
+    if (requestedMode === undefined) {
+      const source = await fetchCaptionSource(true);
+      if (!syncModeFromSpeakerLanguage(source.speakerLanguage)) {
+        throw httpError(400, 'Select Korean or English as Speaker Language in CaptionKit first.');
+      }
+    } else {
+      await sendSignal('language:select', getModeDetails().sourceLanguage);
+      await delay(800);
+    }
   }
   await sendSignal(event);
   // A successful signal request only means CaptionKit accepted the command.
@@ -495,6 +531,7 @@ async function handleRequest(request, response) {
       markRuntime({ lastError: error.message });
       throw error;
     }
+    syncModeFromSpeakerLanguage(speakerLanguageFromStatus(status));
     markRuntime({
       live: Boolean(status.live),
       stream: status.status || null,
@@ -619,6 +656,7 @@ module.exports = {
   DEFAULT_SETTINGS,
   buildCaptionUrl,
   createServer,
+  getModeForSpeakerLanguage,
   getModeDetails,
   parseCaptionSourceHtml,
   validateConfigPatch,

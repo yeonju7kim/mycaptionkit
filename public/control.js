@@ -4,13 +4,11 @@ const elements = {
   livePill: document.querySelector('#livePill'),
   liveLabel: document.querySelector('#liveLabel'),
   setupNotice: document.querySelector('#setupNotice'),
-  lastUpdatedLabel: document.querySelector('#lastUpdatedLabel'),
   fontSizeValue: document.querySelector('#fontSizeValue'),
   widthValue: document.querySelector('#widthValue'),
   displayAddress: document.querySelector('#displayAddress'),
   settingsDialog: document.querySelector('#settingsDialog'),
   settingsForm: document.querySelector('#settingsForm'),
-  stopDialog: document.querySelector('#stopDialog'),
   toast: document.querySelector('#toast'),
   apiKeyInput: document.querySelector('#apiKeyInput'),
   apiKeyHelp: document.querySelector('#apiKeyHelp'),
@@ -35,7 +33,6 @@ const elements = {
 const PIN_STORAGE_KEY = 'mycaptionkit-control-pin';
 const MIC_DEVICE_STORAGE_KEY = 'mycaptionkit-microphone-device';
 let appState = null;
-let busy = false;
 let toastTimer = null;
 let statusPollingDisabled = false;
 let microphoneStream = null;
@@ -78,13 +75,6 @@ function showToast(message, type = 'success') {
   toastTimer = setTimeout(() => elements.toast.classList.remove('is-visible'), 3600);
 }
 
-function actionLabel(action) {
-  return {
-    start: 'Streaming started.',
-    stop: 'Streaming stopped.',
-  }[action] || 'Done.';
-}
-
 function render(nextState) {
   if (!nextState) return;
   appState = nextState;
@@ -113,20 +103,11 @@ function render(nextState) {
     elements.liveLabel.textContent = nextState.apiKeyConfigured ? 'READY' : 'SETUP';
   }
 
-  document.querySelectorAll('[data-start-mode]').forEach((button) => {
-    const active = runtime.live === true && button.dataset.startMode === settings.activeMode;
-    button.classList.toggle('is-active', active);
-    button.setAttribute('aria-pressed', String(active));
-  });
   document.querySelectorAll('[data-set]').forEach((button) => {
     const expected = String(settings[button.dataset.set]);
     button.classList.toggle('is-active', button.dataset.value === expected);
     button.setAttribute('aria-pressed', String(button.dataset.value === expected));
   });
-
-  elements.lastUpdatedLabel.textContent = runtime.live === true
-    ? 'LIVE'
-    : runtime.live === null && runtime.lastAction === 'start' ? 'Starting' : 'Ready';
 
   if (!elements.settingsDialog.open) fillSettingsForm();
 }
@@ -159,36 +140,6 @@ function fillSettingsForm() {
   }
 }
 
-function setBusy(value) {
-  busy = value;
-  document.querySelectorAll('[data-action], [data-start-mode]').forEach((button) => {
-    button.disabled = value;
-  });
-}
-
-async function performAction(action, extra = {}) {
-  if (busy) return;
-  setBusy(true);
-  try {
-    const payload = await apiRequest('/api/action', {
-      method: 'POST',
-      body: JSON.stringify({ action, ...extra }),
-    });
-    render(payload.state);
-    showToast(actionLabel(action));
-    if (action === 'start') setTimeout(verifyCaptionKitStarted, 2500);
-    if (action === 'stop') setTimeout(refreshStatus, 1500);
-  } catch (error) {
-    showToast(error.message, 'error');
-    if (error.status === 401 && appState?.controlPinRequired) {
-      openSettings();
-      elements.controlPinInput.focus();
-    }
-  } finally {
-    setBusy(false);
-  }
-}
-
 async function saveConfig(patch, successMessage = 'Display settings saved.') {
   try {
     const payload = await apiRequest('/api/config', {
@@ -218,39 +169,6 @@ async function refreshStatus() {
         ? 'Enter the correct Control PIN in Settings.'
         : 'Check your CaptionKit API key.', 'error');
     }
-  }
-}
-
-async function verifyCaptionKitStarted() {
-  if (!appState?.apiKeyConfigured || statusPollingDisabled) return;
-  try {
-    const payload = await apiRequest('/api/status');
-    render(payload.state);
-    if (!payload.status?.live) {
-      showToast('CaptionKit did not start. Check microphone access and 📡 Signals in the dashboard.', 'error');
-      return;
-    }
-
-    const stream = payload.status.status;
-    const expectedInput = payload.state.mode.sourceLanguage;
-    const actualInput = stream?.options?.language;
-    if (actualInput && actualInput.toLowerCase() !== expectedInput.toLowerCase()) {
-      showToast(`CaptionKit input is ${actualInput}, but ${expectedInput} was requested. Try the language button again.`, 'error');
-      return;
-    }
-
-    const output = payload.state.mode.displayLanguage.toLowerCase();
-    const outputBase = output.split('-')[0];
-    const translations = stream?.options?.translations || [];
-    const translationEnabled = translations.some((language) => {
-      const normalized = String(language).toLowerCase();
-      return normalized === output || normalized.split('-')[0] === outputBase;
-    });
-    if (!translationEnabled && outputBase !== actualInput?.toLowerCase().split('-')[0]) {
-      showToast(`Enable ${payload.state.mode.displayLabel} under CaptionKit Translations.`, 'error');
-    }
-  } catch (error) {
-    showToast(`Could not verify CaptionKit: ${error.message}`, 'error');
   }
 }
 
@@ -414,26 +332,6 @@ async function copyDisplayAddress() {
   }
 }
 
-document.querySelectorAll('[data-start-mode]').forEach((button) => {
-  button.addEventListener('click', () => performAction('start', { mode: button.dataset.startMode }));
-});
-
-document.querySelectorAll('[data-action]').forEach((button) => {
-  button.addEventListener('click', () => {
-    if (button.dataset.action === 'stop') {
-      elements.stopDialog.showModal();
-      return;
-    }
-    performAction(button.dataset.action);
-  });
-});
-
-document.querySelector('#confirmStopButton').addEventListener('click', (event) => {
-  event.preventDefault();
-  elements.stopDialog.close();
-  performAction('stop');
-});
-
 document.querySelectorAll('[data-set]').forEach((button) => {
   button.addEventListener('click', () => {
     const key = button.dataset.set;
@@ -517,10 +415,12 @@ async function initialize() {
     }
   };
   events.onerror = () => {
-    elements.lastUpdatedLabel.textContent = 'Reconnecting';
+    elements.livePill.classList.remove('is-live', 'is-stopped', 'is-error');
+    elements.livePill.classList.add('is-unknown');
+    elements.liveLabel.textContent = 'RECONNECTING';
   };
 
-  setInterval(refreshStatus, 7000);
+  setInterval(refreshStatus, 3000);
 }
 
 initialize();

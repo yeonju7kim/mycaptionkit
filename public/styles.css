@@ -489,7 +489,6 @@ select:focus-visible {
   align-items: start;
 }
 
-.caption-panel,
 .microphone-panel {
   grid-column: 1 / -1;
   padding: 25px;
@@ -501,8 +500,17 @@ select:focus-visible {
 
 .caption-action-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+}
+
+.play-triangle {
+  width: 0;
+  height: 0;
+  margin: 0 3px;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 13px solid var(--green);
 }
 
 .caption-action {
@@ -1501,7 +1509,6 @@ select:focus-visible {
 
   .mode-panel,
   .stream-panel,
-  .caption-panel,
   .microphone-panel,
   .display-controls-panel,
   .preview-panel {

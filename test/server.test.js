@@ -7,18 +7,26 @@ const {
   DEFAULT_SETTINGS,
   buildCaptionUrl,
   createServer,
+  getModeForSpeakerLanguage,
   getModeDetails,
   parseCaptionSourceHtml,
   validateConfigPatch,
 } = require('../server');
 
 test('CaptionKit public page metadata is parsed for realtime captions', () => {
-  const html = String.raw`{\"account_id\":\"d393f60b-ab2e-4052-9977-17af141a19a1\",\"slug\":\"kcic\"}{\"id\":\"profile-id\",\"account_id\":\"d393f60b-ab2e-4052-9977-17af141a19a1\",\"slug\":\"default\"}`;
+  const html = String.raw`{\"account_id\":\"d393f60b-ab2e-4052-9977-17af141a19a1\",\"slug\":\"kcic\"}{\"id\":\"profile-id\",\"account_id\":\"d393f60b-ab2e-4052-9977-17af141a19a1\",\"slug\":\"default\",\"settings\":{\"language\":\"en-US\"}}`;
   assert.deepEqual(parseCaptionSourceHtml(html), {
     accountId: 'd393f60b-ab2e-4052-9977-17af141a19a1',
     profileSlug: 'default',
+    speakerLanguage: 'en-US',
     realtimeUrl: 'wss://realtime.shrill-base-ff6a.workers.dev/v1/subscribe',
   });
+});
+
+test('Speaker Language selects the opposite translation direction', () => {
+  assert.equal(getModeForSpeakerLanguage('ko-KR', DEFAULT_SETTINGS), 'ko-en');
+  assert.equal(getModeForSpeakerLanguage('en-US', DEFAULT_SETTINGS), 'en-ko');
+  assert.equal(getModeForSpeakerLanguage('es', DEFAULT_SETTINGS), null);
 });
 
 test('한국어 설교 모드는 영어 번역 lower-third URL을 만든다', () => {
@@ -79,9 +87,8 @@ test('로컬 서버가 Control, Display, 공개 상태를 제공한다', async (
   assert.equal(healthResponse.status, 200);
   assert.deepEqual(await healthResponse.json(), { ok: true, service: 'mycaptionkit' });
   const controlHtml = await controlResponse.text();
-  assert.match(controlHtml, /Korean → English/);
-  assert.match(controlHtml, /English → Korean/);
-  assert.match(controlHtml, /data-start-mode="ko-en"/);
+  assert.doesNotMatch(controlHtml, /data-action="(?:start|stop)"/);
+  assert.doesNotMatch(controlHtml, /Caption controls/);
   assert.match(controlHtml, /microphoneTestButton/);
   assert.match(controlHtml, /https:\/\/app\.captionkit\.com\//);
   const displayHtml = await displayResponse.text();

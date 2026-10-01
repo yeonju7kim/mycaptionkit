@@ -35,7 +35,8 @@ CaptionKit이 Live가 아닐 때 Control의 미리보기에는 설정을 확인�
 1. **[프로젝트 ZIP 다운로드](https://github.com/yeonju7kim/mycaptionkit/archive/refs/heads/main.zip)**를 누릅니다.
 2. 다운로드한 ZIP 파일의 압축을 풉니다.
 3. 폴더 안의 `start-captionkit.cmd`를 더블 클릭합니다.
-4. 브라우저에서 `http://127.0.0.1:4173/control`이 자동으로 열립니다.
+4. 바탕화면에 **AI Translator** 바로가기가 없으면 전용 아이콘과 함께 자동으로 생성됩니다.
+5. 브라우저에서 `http://127.0.0.1:4173/control`이 자동으로 열립니다.
 
 Git을 사용하는 경우:
 
@@ -46,6 +47,8 @@ cd mycaptionkit
 ```
 
 이미 실행 중일 때 `start-captionkit.cmd`를 다시 실행하면 서버를 중복 실행하지 않고 기존 Control 화면만 엽니다. 종료하려면 열린 My CaptionKit 터미널에서 `Ctrl+C`를 누릅니다.
+
+다음부터는 바탕화면의 **AI Translator** 바로가기를 더블 클릭하면 됩니다. 프로젝트 폴더를 다른 위치로 옮긴 경우 기존 바로가기를 삭제한 뒤 `start-captionkit.cmd`를 다시 실행하면 새 위치를 가리키는 바로가기가 생성됩니다.
 
 ## 처음 설정하기
 

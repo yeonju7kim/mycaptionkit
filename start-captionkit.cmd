@@ -2,6 +2,8 @@
 cd /d "%~dp0"
 title My CaptionKit
 
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0create-shortcut.ps1"
+
 powershell.exe -NoProfile -Command "try { $health = Invoke-RestMethod -Uri 'http://127.0.0.1:4173/health' -TimeoutSec 1; if ($health.service -eq 'mycaptionkit') { exit 0 }; exit 1 } catch { exit 1 }"
 if not errorlevel 1 (
   echo.

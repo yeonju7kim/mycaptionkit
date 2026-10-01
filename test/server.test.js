@@ -107,12 +107,13 @@ test('로컬 서버가 Control, Display, 공개 상태를 제공한다', async (
   const { port } = server.address();
   const baseUrl = `http://127.0.0.1:${port}`;
 
-  const [healthResponse, controlResponse, displayResponse, subtitleResponse, fullResponse, stateResponse] = await Promise.all([
+  const [healthResponse, controlResponse, displayResponse, subtitleResponse, fullResponse, iconResponse, stateResponse] = await Promise.all([
     fetch(`${baseUrl}/health`),
     fetch(`${baseUrl}/control`),
     fetch(`${baseUrl}/display`),
     fetch(`${baseUrl}/display/subtitle`),
     fetch(`${baseUrl}/display/full`),
+    fetch(`${baseUrl}/ai-translator.ico`),
     fetch(`${baseUrl}/api/state`),
   ]);
 
@@ -132,11 +133,15 @@ test('로컬 서버가 Control, Display, 공개 상태를 제공한다', async (
   assert.match(controlHtml, /data-captionkit-dashboard-link/);
   assert.match(controlHtml, /Choose the Speaker Language\./);
   assert.match(controlHtml, /Press the ⚡ button\./);
+  assert.match(controlHtml, /rel="icon" href="\/ai-translator\.ico"/);
   const displayHtml = await displayResponse.text();
   assert.match(displayHtml, /captionFrameA/);
   assert.match(displayHtml, /sentenceCaptionLayer/);
   assert.equal(subtitleResponse.status, 200);
   assert.equal(fullResponse.status, 200);
+  assert.equal(iconResponse.status, 200);
+  assert.match(iconResponse.headers.get('content-type'), /^image\/x-icon/);
+  assert.ok((await iconResponse.arrayBuffer()).byteLength > 0);
   assert.match(controlHtml, /data-display-address="subtitle"/);
   assert.match(controlHtml, /data-display-address="full"/);
   assert.match(controlHtml, /src="\/display\/subtitle\?preview=1"/);

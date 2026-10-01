@@ -560,6 +560,7 @@ async function handleRequest(request, response) {
     '/styles.css': ['styles.css', 'text/css; charset=utf-8'],
     '/control.js': ['control.js', 'text/javascript; charset=utf-8'],
     '/display.js': ['display.js', 'text/javascript; charset=utf-8'],
+    '/ai-translator.ico': ['ai-translator.ico', 'image/x-icon'],
   };
   if (request.method === 'GET' && staticFiles[pathname]) {
     sendFile(response, ...staticFiles[pathname]);

@@ -336,28 +336,6 @@ select:focus-visible {
   white-space: nowrap;
 }
 
-.microphone-check {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 24px;
-  margin-bottom: 18px;
-  padding: 17px 19px;
-  border: 1px solid rgba(95, 140, 255, 0.24);
-  border-radius: 16px;
-  background: linear-gradient(120deg, rgba(95, 140, 255, 0.1), rgba(255, 255, 255, 0.025));
-}
-
-.microphone-status-row {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
-
-.microphone-status-row strong {
-  font-size: 13px;
-}
-
 .microphone-dot {
   width: 9px;
   height: 9px;
@@ -386,20 +364,6 @@ select:focus-visible {
 .microphone-dot.is-error {
   background: var(--red);
   box-shadow: 0 0 0 4px rgba(255, 101, 114, 0.12);
-}
-
-.microphone-check-copy p {
-  margin: 7px 0 9px;
-  color: #b8c0ce;
-  font-size: 11px;
-  line-height: 1.45;
-}
-
-.microphone-check-copy small {
-  display: block;
-  margin-top: 7px;
-  color: var(--muted);
-  font-size: 9px;
 }
 
 .microphone-level {
@@ -624,11 +588,6 @@ select:focus-visible {
   align-items: start;
 }
 
-.microphone-panel {
-  grid-column: 1 / -1;
-  padding: 25px;
-}
-
 .compact-heading {
   margin-bottom: 15px;
 }
@@ -728,11 +687,6 @@ select:focus-visible {
   flex: 0 0 auto;
   border-radius: 3px;
   background: var(--red);
-}
-
-.microphone-panel .microphone-level {
-  width: 100%;
-  margin-bottom: 14px;
 }
 
 .mode-panel,
@@ -1299,6 +1253,46 @@ select:focus-visible {
   font-size: 12px;
 }
 
+.settings-microphone-heading,
+.settings-microphone-heading > div {
+  display: flex;
+  align-items: center;
+}
+
+.settings-microphone-heading {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.settings-microphone-heading > div {
+  gap: 9px;
+}
+
+.settings-microphone-heading h3 {
+  margin-bottom: 0;
+}
+
+.settings-microphone-heading > span {
+  color: var(--muted);
+  font-size: 9px;
+  text-align: right;
+}
+
+.settings-note {
+  margin: 7px 0 13px;
+  color: #737d8d;
+  font-size: 9px;
+}
+
+.settings-microphone-level {
+  width: 100%;
+  margin-bottom: 13px;
+}
+
+.settings-microphone-actions {
+  grid-template-columns: minmax(180px, 1fr) auto auto;
+}
+
 .settings-display-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1756,10 +1750,6 @@ select:focus-visible {
     grid-template-columns: 1fr;
   }
 
-  .microphone-check {
-    grid-template-columns: 1fr;
-  }
-
   .microphone-actions {
     grid-template-columns: minmax(0, 1fr) auto auto;
   }
@@ -1782,7 +1772,6 @@ select:focus-visible {
 
   .mode-panel,
   .stream-panel,
-  .microphone-panel,
   .display-controls-panel,
   .preview-panel {
     padding: 19px;
@@ -1834,6 +1823,16 @@ select:focus-visible {
 
   .microphone-actions {
     grid-template-columns: 1fr;
+  }
+
+  .settings-microphone-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .settings-microphone-heading > span {
+    text-align: left;
   }
 
   .setup-notice {

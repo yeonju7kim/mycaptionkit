@@ -470,6 +470,9 @@ elements.microphoneDeviceSelect.addEventListener('change', () => {
   if (deviceId) localStorage.setItem(MIC_DEVICE_STORAGE_KEY, deviceId);
   else localStorage.removeItem(MIC_DEVICE_STORAGE_KEY);
 });
+elements.settingsDialog.addEventListener('close', () => {
+  if (microphoneStream) stopMicrophoneTest('Microphone test stopped.');
+});
 window.addEventListener('pagehide', () => stopMicrophoneTest());
 
 async function initialize() {

@@ -72,29 +72,6 @@
     </article>
 
     <section class="dashboard-grid simple-dashboard-grid">
-      <article class="panel microphone-panel" aria-labelledby="microphoneCheckTitle">
-        <div class="panel-heading compact-heading">
-          <div>
-            <span class="microphone-dot" id="microphoneDot" aria-hidden="true"></span>
-            <h2 id="microphoneCheckTitle">Microphone</h2>
-          </div>
-          <span class="heading-note" id="microphoneStatus" aria-live="polite">Ready to test</span>
-        </div>
-        <div class="microphone-level" id="microphoneLevel" role="progressbar" aria-label="Microphone input level" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-          <span id="microphoneLevelBar"></span>
-        </div>
-        <div class="microphone-actions">
-          <label class="microphone-device-field">
-            <span>Input</span>
-            <select id="microphoneDeviceSelect" aria-label="Microphone input">
-              <option value="">Default microphone</option>
-            </select>
-          </label>
-          <button class="secondary-button microphone-test-button" id="microphoneTestButton" type="button">Test microphone</button>
-          <a class="primary-button microphone-dashboard-link" id="captionkitDashboardLink" data-captionkit-dashboard-link href="https://app.captionkit.com/kcic-ytpx2u" target="_blank" rel="noopener noreferrer" title="Open this CaptionKit handle">Open CaptionKit ↗</a>
-        </div>
-      </article>
-
       <article class="panel display-controls-panel" data-display-settings="subtitle">
         <div class="panel-heading compact-heading">
           <div><h2>Subtitle</h2></div>
@@ -247,6 +224,27 @@
             <span>Control PIN <em>optional</em></span>
             <input id="controlPinInput" type="password" autocomplete="off" placeholder="Same PIN as your .env file">
           </label>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-microphone-heading">
+          <div><span class="microphone-dot" id="microphoneDot" aria-hidden="true"></span><h3>Microphone</h3></div>
+          <span id="microphoneStatus" aria-live="polite">Ready to test</span>
+        </div>
+        <p class="settings-note">Test this computer, then select the same input in CaptionKit.</p>
+        <div class="microphone-level settings-microphone-level" id="microphoneLevel" role="progressbar" aria-label="Microphone input level" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <span id="microphoneLevelBar"></span>
+        </div>
+        <div class="microphone-actions settings-microphone-actions">
+          <label class="microphone-device-field">
+            <span>Input</span>
+            <select id="microphoneDeviceSelect" aria-label="Microphone input">
+              <option value="">Default microphone</option>
+            </select>
+          </label>
+          <button class="secondary-button microphone-test-button" id="microphoneTestButton" type="button">Test microphone</button>
+          <a class="primary-button microphone-dashboard-link" id="captionkitDashboardLink" data-captionkit-dashboard-link href="https://app.captionkit.com/kcic-ytpx2u" target="_blank" rel="noopener noreferrer" title="Open this CaptionKit handle">Open CaptionKit ↗</a>
         </div>
       </div>
 

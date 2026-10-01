@@ -37,7 +37,7 @@ node server.js --open
 
 ## 마이크 준비하기
 
-Control 화면의 **Test microphone**은 이 PC에서 선택한 마이크가 실제 음성을 받는지 7초 동안 검사합니다. 이 테스트 권한은 로컬 주소(`127.0.0.1`)에만 적용됩니다.
+Control 화면의 **Settings → Microphone → Test microphone**은 이 PC에서 선택한 마이크가 실제 음성을 받는지 7초 동안 검사합니다. 이 테스트 권한은 로컬 주소(`127.0.0.1`)에만 적용됩니다.
 
 실제 자막 음성은 CaptionKit 대시보드가 받으므로 **Open CaptionKit**을 눌러 Settings에 저장한 handle의 대시보드를 연 뒤 다음 항목도 설정해야 합니다.
 

@@ -123,7 +123,9 @@ test('로컬 서버가 Control, Display, 공개 상태를 제공한다', async (
   assert.doesNotMatch(controlHtml, /Caption controls/);
   assert.match(controlHtml, /microphoneTestButton/);
   assert.match(controlHtml, /https:\/\/app\.captionkit\.com\//);
-  assert.ok(controlHtml.indexOf('quick-start-panel') < controlHtml.indexOf('microphone-panel'));
+  assert.ok(controlHtml.indexOf('quick-start-panel') < controlHtml.indexOf('dashboard-grid'));
+  assert.doesNotMatch(controlHtml, /class="panel microphone-panel"/);
+  assert.match(controlHtml, /settings-microphone-actions/);
   assert.match(controlHtml, /data-guide-language="en"/);
   assert.match(controlHtml, /data-guide-language="ko"/);
   assert.match(controlHtml, /data-guide-language="zh"/);
